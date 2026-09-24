@@ -286,6 +286,16 @@ header{ margin-bottom: 14px; text-align:left; }
 .article-empty-msg{ font-size:13px; color:var(--ink-soft); padding:10px 0; }
 .article-status-msg{ font-size:13px; color:#b3261e; padding:8px 0 2px; }
 
+.vocab-table{ width:100%; border-collapse: collapse; margin-bottom: 18px; font-family:'Hind Siliguri'; font-size:13px; }
+.vocab-table th{
+  text-align:left; background: var(--paper-dark); color: var(--navy); font-weight:700;
+  padding: 8px 10px; border-bottom: 2px solid var(--navy); font-size:12px;
+}
+.vocab-table td{ padding: 8px 10px; border-bottom: 1px solid var(--paper-dark); vertical-align: top; line-height:1.55; }
+.vocab-table tr:last-child td{ border-bottom:none; }
+.vocab-table td.vocab-term{ font-family:'Fraunces', serif; font-weight:700; color: var(--navy); white-space:nowrap; }
+.vocab-table-scroll{ overflow-x:auto; }
+
 /* ---------- DEEP GRAMMAR BREAKDOWN (AI, 5-group method) ---------- */
 .gp-sentence-card{
   border: 1.5px solid var(--paper-dark); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; background: var(--paper);
@@ -320,6 +330,18 @@ header{ margin-bottom: 14px; text-align:left; }
   font-family:'Hind Siliguri'; font-size:14px; line-height:1.75; background: var(--paper-dark); border-radius:8px; padding:10px 12px; margin-top:12px;
 }
 .gp-progress{ font-size:12.5px; color: var(--ink-soft); padding: 6px 0; }
+.gp-tree-item{
+  font-family:'Hind Siliguri'; font-size:12.5px; line-height:1.6; padding: 6px 0 6px 8px;
+  border-left: 3px solid var(--navy); margin-bottom: 6px; display:flex; flex-wrap:wrap; gap:6px;
+}
+.gp-tree-bracket{ font-family:'Fraunces', serif; font-weight:700; color: var(--navy); }
+.gp-tree-cat{ color: #8a5a17; }
+.gp-tree-bn{ color: var(--ink); }
+.gp-correction-block{
+  border: 1.5px solid #f0c9c4; background: #fdf3f2; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;
+}
+.gp-correction-issue{ font-family:'Work Sans'; font-size:13px; color:#a33; text-decoration: line-through; margin-bottom:4px; }
+.gp-correction-fix{ font-family:'Work Sans'; font-size:13px; font-weight:700; color:#1f7a3d; margin-bottom:4px; }
 
 
 /* ---------- DICTIONARY ---------- */
@@ -481,13 +503,17 @@ header{ margin-bottom: 14px; text-align:left; }
     <div id="articleModeSection" style="display:none;">
       <div class="section-label" data-i18n="pasteArticleLabel">আর্টিকেল পেস্ট করুন</div>
       <textarea id="articleInput" class="article-textarea" data-i18n-ph="articlePlaceholder" placeholder="এখানে ইংরেজি আর্টিকেল বা অনুচ্ছেদ পেস্ট করুন..."></textarea>
+      <div class="article-empty-msg" data-i18n="analyzeIntro">আর্টিকেল থেকে গুরুত্বপূর্ণ শব্দ ও শব্দগুচ্ছ বের করে বাংলা অর্থ ও প্রাসঙ্গিক ব্যাখ্যা দেয় — AI দিয়ে চালিত। ইন্টারনেট সংযোগ লাগবে।</div>
       <button class="analyze-btn" id="analyzeArticleBtn" data-i18n="analyzeBtn">বিশ্লেষণ করুন</button>
       <div class="article-status-msg" id="articleStatusMsg" style="display:none;"></div>
 
       <div id="articleResults" style="display:none;">
 
-        <div class="section-label" data-i18n="difficultWordsLabel">কঠিন শব্দসমূহ</div>
-        <div id="difficultWordsList"></div>
+        <div class="section-label" data-i18n="keyVocabLabel">Part 1: মূল শব্দভাণ্ডার (Key Vocabulary)</div>
+        <div id="keyVocabTableWrap"></div>
+
+        <div class="section-label" data-i18n="phrasesLabel">গুরুত্বপূর্ণ শব্দগুচ্ছ (Important Phrases)</div>
+        <div id="phrasesTableWrap"></div>
 
         <div class="section-label" data-i18n="deepGrammarLabel">গভীর ব্যাকরণ বিশ্লেষণ (বাক্য ধরে ধরে)</div>
         <div class="article-empty-msg" data-i18n="deepGrammarIntro">প্রতিটি বাক্যকে ক্লজ ও ফ্রেজে ভেঙে, কোনটা কাকে মডিফাই করছে এবং article/preposition কেন এভাবে ব্যবহার হয়েছে তা AI দিয়ে ব্যাখ্যা করে। ইন্টারনেট সংযোগ লাগবে।</div>
@@ -694,17 +720,18 @@ const I18N = {
     articlePlaceholder: 'এখানে ইংরেজি আর্টিকেল বা অনুচ্ছেদ পেস্ট করুন...',
     analyzeBtn: 'বিশ্লেষণ করুন',
     analyzingBtn: 'বিশ্লেষণ হচ্ছে...',
-    highlightedTextLabel: 'হাইলাইট করা টেক্সট',
-    difficultWordsLabel: 'কঠিন শব্দসমূহ',
-    grammarNotesLabel: 'ব্যাকরণ নোট',
+    analyzeIntro: 'আর্টিকেল থেকে গুরুত্বপূর্ণ শব্দ ও শব্দগুচ্ছ বের করে বাংলা অর্থ ও প্রাসঙ্গিক ব্যাখ্যা দেয় — AI দিয়ে চালিত। ইন্টারনেট সংযোগ লাগবে।',
+    keyVocabLabel: 'Part 1: মূল শব্দভাণ্ডার (Key Vocabulary)',
+    phrasesLabel: 'গুরুত্বপূর্ণ শব্দগুচ্ছ (Important Phrases)',
+    vocabColTerm: 'Word / Phrase',
+    vocabColBn: 'বাংলা অর্থ',
+    vocabColContext: 'Contextual meaning',
     translationLabel: 'বাংলা অনুবাদ',
     translationIntro: 'শব্দে শব্দে নয় — AI দিয়ে ভাবানুবাদ (মূল অর্থ অনুযায়ী স্বাভাবিক বাংলা)।',
     translateBtn: 'পুরো অনুবাদ দেখুন',
     translatingBtn: 'অনুবাদ হচ্ছে...',
-    noDifficultWords: 'এই লেখায় কঠিন শব্দ পাওয়া যায়নি — চমৎকার!',
-    noGrammarNotes: 'এই লেখায় দেখানোর মতো নির্দিষ্ট ব্যাকরণ নোট পাওয়া যায়নি।',
+    noDifficultWords: 'এই লেখায় উল্লেখযোগ্য কোনো শব্দ/শব্দগুচ্ছ পাওয়া যায়নি।',
     enterArticleFirst: 'প্রথমে একটা আর্টিকেল পেস্ট করুন।',
-    nlpLoadError: 'বিশ্লেষণ টুল লোড হচ্ছে, একটু পর আবার চেষ্টা করুন। সমস্যা থাকলে ইন্টারনেট সংযোগ পরীক্ষা করে পেজ রিফ্রেশ করুন।',
     articleAnalyzeError: 'দুঃখিত, বিশ্লেষণ করা যায়নি। আবার চেষ্টা করুন।',
     articleTranslateError: 'দুঃখিত, অনুবাদ করা যায়নি। আবার চেষ্টা করুন।',
     deepGrammarLabel: 'গভীর ব্যাকরণ বিশ্লেষণ (বাক্য ধরে ধরে)',
@@ -715,13 +742,16 @@ const I18N = {
     deepGrammarNotConfigured: 'এই ফিচারটি এখনো চালু করা হয়নি। সাইট অ্যাডমিনকে Netlify-তে GEMINI_API_KEY যোগ করতে বলুন।',
     deepGrammarError: 'দুঃখিত, এই বাক্যের গভীর বিশ্লেষণ করা যায়নি। পরে আবার চেষ্টা করুন।',
     deepGrammarQuotaError: 'ফ্রি কোটার সীমা শেষ হয়ে গেছে। এক মিনিট পর আবার চেষ্টা করুন।',
-    group1Label: 'Core Sentence & Clause Structure (মূল বাক্য ও clause গঠন)',
-    group2Label: 'Phrase & Internal Structure (ফ্রেজ গঠন)',
-    group3Label: 'Non-finite & Reduced Structures',
-    group4Label: 'Modifier & Complement Relationships (কে কাকে modify করছে)',
-    group5Label: 'Word-Level & Final Summary (শব্দের ভূমিকা ও অর্থ)',
+    partMainClauseLabel: 'Main Clause (মূল ক্লজ)',
+    partSubordinateLabel: 'Subordinate Clause(s) (অধীন ক্লজ)',
+    partReducedLabel: 'Reduced Clause(s) (সংকুচিত ক্লজ)',
+    partPhrasesLabel: 'Phrase-by-Phrase Analysis (ফ্রেজ বিশ্লেষণ)',
+    partTreeLabel: 'Complete Grammatical Tree (সম্পূর্ণ গঠন-বৃক্ষ)',
+    partCorrectionsLabel: 'Key Corrections (সংশোধনী)',
     gpNoData: 'এই বাক্যে এই ধরনের কিছু পাওয়া যায়নি।',
-    gpNoNonfinite: 'এই বাক্যে non-finite/reduced structure নেই।',
+    gpNoSubordinate: 'এখানে কোনো subordinate clause নেই।',
+    gpNoReduced: 'এখানে কোনো reduced clause নেই।',
+    gpNoCorrections: 'কোনো ব্যাকরণগত সমস্যা পাওয়া যায়নি — বাক্যটি সঠিক। ✅',
     sourceGre: 'উৎস: আপনার GRE ব্যাচ',
     sourceTranslated: 'উৎস: স্বয়ংক্রিয় অনুবাদ',
     legendNoun: 'বিশেষ্য', legendVerb: 'ক্রিয়া', legendAdj: 'বিশেষণ', legendAdv: 'ক্রিয়াবিশেষণ', legendPrep: 'পদান্বয়ী অব্যয়',
@@ -791,17 +821,18 @@ const I18N = {
     articlePlaceholder: 'Paste an English article or paragraph here...',
     analyzeBtn: 'Analyze',
     analyzingBtn: 'Analyzing...',
-    highlightedTextLabel: 'Highlighted Text',
-    difficultWordsLabel: 'Difficult Words',
-    grammarNotesLabel: 'Grammar Notes',
+    analyzeIntro: 'Pulls out key words and phrases from the article with Bangla meanings and contextual explanations — powered by AI. Needs an internet connection.',
+    keyVocabLabel: 'Part 1: Key Vocabulary',
+    phrasesLabel: 'Important Phrases',
+    vocabColTerm: 'Word / Phrase',
+    vocabColBn: 'বাংলা অর্থ',
+    vocabColContext: 'Contextual meaning',
     translationLabel: 'Bangla Translation',
     translationIntro: 'Not word-for-word — a natural, meaning-based (sense-for-sense) Bangla translation, powered by AI.',
     translateBtn: 'Show Full Translation',
     translatingBtn: 'Translating...',
-    noDifficultWords: 'No difficult words found in this text — great!',
-    noGrammarNotes: 'No specific grammar notes found for this text.',
+    noDifficultWords: 'No notable words or phrases were found in this text.',
     enterArticleFirst: 'Please paste an article first.',
-    nlpLoadError: 'The analysis tool is still loading — please try again in a moment. If this continues, check your internet connection and refresh the page.',
     articleAnalyzeError: 'Sorry, the analysis failed. Please try again.',
     articleTranslateError: 'Sorry, the translation failed. Please try again.',
     deepGrammarLabel: 'Deep Grammar Breakdown (sentence by sentence)',
@@ -812,13 +843,16 @@ const I18N = {
     deepGrammarNotConfigured: 'This feature is not set up yet. Ask the site admin to add GEMINI_API_KEY in Netlify.',
     deepGrammarError: 'Sorry, this sentence could not be analyzed. Please try again later.',
     deepGrammarQuotaError: 'The free quota limit was reached. Please try again in a minute.',
-    group1Label: 'Core Sentence & Clause Structure',
-    group2Label: 'Phrase & Internal Structure',
-    group3Label: 'Non-finite & Reduced Structures',
-    group4Label: 'Modifier & Complement Relationships',
-    group5Label: 'Word-Level & Final Summary',
+    partMainClauseLabel: 'Main Clause',
+    partSubordinateLabel: 'Subordinate Clause(s)',
+    partReducedLabel: 'Reduced Clause(s)',
+    partPhrasesLabel: 'Phrase-by-Phrase Analysis',
+    partTreeLabel: 'Complete Grammatical Tree',
+    partCorrectionsLabel: 'Key Corrections',
     gpNoData: 'Nothing of this kind was found in this sentence.',
-    gpNoNonfinite: 'This sentence has no non-finite / reduced structures.',
+    gpNoSubordinate: 'There is no subordinate clause here.',
+    gpNoReduced: 'There is no reduced clause here.',
+    gpNoCorrections: 'No grammatical issues found — this sentence is correct. ✅',
     sourceGre: 'Source: Your GRE batch',
     sourceTranslated: 'Source: Auto-translated',
     legendNoun: 'Noun', legendVerb: 'Verb', legendAdj: 'Adjective', legendAdv: 'Adverb', legendPrep: 'Preposition',
@@ -3149,7 +3183,6 @@ function posClassForTags(tags){
   return null;
 }
 
-let lastArticleDoc = null;
 let lastArticleText = '';
 
 function showArticleStatus(msg){
@@ -3159,18 +3192,40 @@ function showArticleStatus(msg){
   el.style.display = '';
 }
 
-function waitForNlp(timeoutMs){
-  return new Promise((resolve)=>{
-    if(typeof window.nlp === 'function') return resolve(true);
-    const start = Date.now();
-    const iv = setInterval(()=>{
-      if(typeof window.nlp === 'function'){
-        clearInterval(iv); resolve(true);
-      }else if(Date.now() - start > timeoutMs){
-        clearInterval(iv); resolve(false);
-      }
-    }, 150);
+function renderVocabTable(wrapId, rows, columns, emptyKey){
+  const wrap = document.getElementById(wrapId);
+  wrap.innerHTML = '';
+  if(!rows || !rows.length){
+    wrap.innerHTML = '<div class="article-empty-msg">' + t(emptyKey) + '</div>';
+    return;
+  }
+  const table = document.createElement('table');
+  table.className = 'vocab-table';
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  columns.forEach(col=>{
+    const th = document.createElement('th');
+    th.textContent = t(col.labelKey);
+    headRow.appendChild(th);
   });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  rows.forEach(row=>{
+    const tr = document.createElement('tr');
+    columns.forEach(col=>{
+      const td = document.createElement('td');
+      td.textContent = row[col.field] || '';
+      if(col.field === 'term') td.className = 'vocab-term';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  const scrollWrap = document.createElement('div');
+  scrollWrap.className = 'vocab-table-scroll';
+  scrollWrap.appendChild(table);
+  wrap.appendChild(scrollWrap);
 }
 
 async function analyzeArticle(){
@@ -3183,71 +3238,39 @@ async function analyzeArticle(){
   btn.textContent = t('analyzingBtn');
 
   try{
-    const nlpReady = await waitForNlp(8000);
-    if(!nlpReady){
-      showArticleStatus(t('nlpLoadError'));
+    lastArticleText = text;
+    const res = await fetch('/.netlify/functions/extract-vocabulary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json().catch(()=> ({}));
+    if(!res.ok){
+      if(data && data.error === 'server_not_configured'){
+        showArticleStatus(t('deepGrammarNotConfigured'));
+      }else if(data && data.error === 'ai_quota_exceeded'){
+        showArticleStatus(t('deepGrammarQuotaError'));
+      }else{
+        const detailBits = [];
+        if(data && data.error) detailBits.push(data.error);
+        if(data && data.status) detailBits.push('http ' + data.status);
+        if(data && data.detail) detailBits.push(String(data.detail).slice(0,150));
+        if(!detailBits.length) detailBits.push('HTTP ' + res.status);
+        showArticleStatus(t('articleAnalyzeError') + ' [' + detailBits.join(' | ') + ']');
+      }
       return;
     }
-    const doc = window.nlp(text);
-    lastArticleDoc = doc;
-    lastArticleText = text;
-    const json = doc.json();
 
-    // --- Collect candidate words (for difficult-word detection) ---
-    const seen = {};
-    const candidates = [];
-    json.forEach(sentence=>{
-      (sentence.terms || []).forEach(term=>{
-        const clean = (term.normal || term.text || '').toLowerCase().replace(/[^a-z]/g,'');
-        if(clean.length >= 4 && !seen[clean]){
-          seen[clean] = true;
-          candidates.push({word: clean, display: term.text, tags: term.tags || []});
-        }
-      });
-    });
+    renderVocabTable('keyVocabTableWrap', data.key_vocabulary, [
+      {field:'term', labelKey:'vocabColTerm'},
+      {field:'bn_meaning', labelKey:'vocabColBn'},
+      {field:'contextual_meaning', labelKey:'vocabColContext'}
+    ], 'noDifficultWords');
 
-    // --- Difficult word detection ---
-    // Genuinely uncommon words only: prefer our own curated GRE/advanced
-    // vocabulary list as the source of truth, and for anything else, require
-    // real length (short/mid-length words are almost never the "hard" word
-    // in a general-interest article) so ordinary words like "hospital" or
-    // "survey" don't get flagged just for missing the common-word list.
-    const gre = buildGreIndex();
-    const known = [];
-    const needsLookup = [];
-    candidates.forEach(c=>{
-      if(COMMON_WORDS.has(c.word)) return;
-      if(gre[c.word]){ known.push({...c, item: gre[c.word]}); }
-      else if(c.word.length >= 8){ needsLookup.push(c); }
-    });
-    const lookupCapped = needsLookup.slice(0, 30);
-
-    const lookupResults = await Promise.all(lookupCapped.map(async c=>{
-      try{ const bn = await myMemoryTranslate(c.display, 'bn'); return {...c, bn}; }
-      catch(e){ return {...c, bn: ''}; }
-    }));
-
-    const diffListEl = document.getElementById('difficultWordsList');
-    diffListEl.innerHTML = '';
-    const allDiff = [...known.map(k=>({word:k.display, pos:k.item.pos, bn:k.item.bn, src:t('sourceGre')})),
-                     ...lookupResults.filter(r=>r.bn).map(r=>({word:r.display, pos:(r.tags[0]||''), bn:r.bn, src:t('sourceTranslated')}))];
-    if(!allDiff.length){
-      diffListEl.innerHTML = '<div class="article-empty-msg">' + t('noDifficultWords') + '</div>';
-    }else{
-      allDiff.forEach(d=>{
-        const card = document.createElement('div');
-        card.className = 'diff-word-card';
-        card.innerHTML = '<span class="w">' + d.word + '</span><span class="pos">' + d.pos + '</span>' +
-          '<div class="meaning">' + d.bn + '</div><div class="src">' + d.src + '</div>';
-        diffListEl.appendChild(card);
-      });
-      if(needsLookup.length > 30){
-        const note = document.createElement('div');
-        note.className = 'article-empty-msg';
-        note.textContent = t('difficultWordsNote');
-        diffListEl.appendChild(note);
-      }
-    }
+    renderVocabTable('phrasesTableWrap', data.phrases, [
+      {field:'term', labelKey:'vocabColTerm'},
+      {field:'bn_meaning', labelKey:'vocabColBn'}
+    ], 'noDifficultWords');
 
     document.getElementById('articleTranslated').style.display = 'none';
     document.getElementById('articleTranslated').textContent = '';
@@ -3316,18 +3339,11 @@ function renderSentenceBreakdown(container, sentObj){
   const card = document.createElement('div');
   card.className = 'gp-sentence-card';
 
-  // Sentence header: original text + type + pattern
+  // Sentence header: original text
   const header = document.createElement('div');
   header.className = 'gp-sentence-header';
   header.textContent = sentObj.sentence || '';
   card.appendChild(header);
-
-  if(sentObj.sentence_type_bn || sentObj.pattern){
-    const meta = document.createElement('div');
-    meta.className = 'gp-sentence-meta';
-    meta.textContent = [sentObj.sentence_type_bn, sentObj.pattern].filter(Boolean).join(' · ');
-    card.appendChild(meta);
-  }
 
   function addGroupHeading(num, labelKey){
     const h = document.createElement('div');
@@ -3343,40 +3359,110 @@ function renderSentenceBreakdown(container, sentObj){
     card.appendChild(empty);
   }
 
-  // Group 1: Core Sentence & Clause Structure
-  addGroupHeading(1, 'group1Label');
-  const clauses = Array.isArray(sentObj.group1_clauses) ? sentObj.group1_clauses : [];
-  if(!clauses.length){
+  // 1. Main Clause
+  addGroupHeading(1, 'partMainClauseLabel');
+  const mc = sentObj.main_clause || {};
+  if(!mc.text){
     addEmptyNote('gpNoData');
   }else{
-    clauses.forEach(cl=>{
+    const block = document.createElement('div');
+    block.className = 'gp-clause-block';
+    const textEl = document.createElement('div');
+    textEl.className = 'gp-clause-text';
+    textEl.textContent = mc.text;
+    block.appendChild(textEl);
+    if(mc.structure){
+      const st = document.createElement('div');
+      st.className = 'gp-svo';
+      st.textContent = mc.structure;
+      block.appendChild(st);
+    }
+    (mc.breakdown || []).forEach(b=>{
+      const item = document.createElement('div');
+      item.className = 'gp-list-item';
+      item.innerHTML = '<span class="term">' + escapeHtml(b.part || '') + '</span> — ' + escapeHtml(b.role_bn || '');
+      block.appendChild(item);
+    });
+    if(mc.meaning_bn){
+      const note = document.createElement('div');
+      note.className = 'gp-phrase-note';
+      note.textContent = mc.meaning_bn;
+      block.appendChild(note);
+    }
+    card.appendChild(block);
+  }
+
+  // 2. Subordinate Clause(s)
+  addGroupHeading(2, 'partSubordinateLabel');
+  const subs = Array.isArray(sentObj.subordinate_clauses) ? sentObj.subordinate_clauses : [];
+  if(!subs.length){
+    addEmptyNote('gpNoSubordinate');
+  }else{
+    subs.forEach(cl=>{
       const block = document.createElement('div');
       block.className = 'gp-clause-block';
       const label = document.createElement('div');
       label.className = 'gp-clause-label';
-      label.textContent = cl.label_bn || '';
+      label.textContent = cl.type_bn || '';
       block.appendChild(label);
       const textEl = document.createElement('div');
       textEl.className = 'gp-clause-text';
       textEl.textContent = cl.text || '';
       block.appendChild(textEl);
-      const svo = document.createElement('div');
-      svo.className = 'gp-svo';
-      svo.textContent = 'S: ' + (cl.subject || '—') + '  |  V: ' + (cl.verb || '—') + '  |  O: ' + (cl.object || '—');
-      block.appendChild(svo);
-      if(cl.note_bn){
+      if(cl.function_note_bn){
         const note = document.createElement('div');
         note.className = 'gp-phrase-note';
-        note.textContent = cl.note_bn;
+        note.textContent = cl.function_note_bn;
         block.appendChild(note);
+      }
+      if(cl.meaning_bn){
+        const meaning = document.createElement('div');
+        meaning.className = 'gp-phrase-note';
+        meaning.innerHTML = '<span class="role">বাংলা:</span> ' + escapeHtml(cl.meaning_bn);
+        block.appendChild(meaning);
       }
       card.appendChild(block);
     });
   }
 
-  // Group 2: Phrase & Internal Structure
-  addGroupHeading(2, 'group2Label');
-  const phrases = Array.isArray(sentObj.group2_phrases) ? sentObj.group2_phrases : [];
+  // 3. Reduced Clause(s)
+  addGroupHeading(3, 'partReducedLabel');
+  const reduced = Array.isArray(sentObj.reduced_clauses) ? sentObj.reduced_clauses : [];
+  if(!reduced.length){
+    addEmptyNote('gpNoReduced');
+  }else{
+    reduced.forEach(rc=>{
+      const block = document.createElement('div');
+      block.className = 'gp-clause-block';
+      const textEl = document.createElement('div');
+      textEl.className = 'gp-clause-text';
+      textEl.textContent = rc.phrase || '';
+      block.appendChild(textEl);
+      if(rc.full_form){
+        const full = document.createElement('div');
+        full.className = 'gp-phrase-note';
+        full.innerHTML = '<span class="role">পূর্ণ রূপ:</span> ' + escapeHtml(rc.full_form);
+        block.appendChild(full);
+      }
+      if(rc.modifies){
+        const mod = document.createElement('div');
+        mod.className = 'gp-phrase-note';
+        mod.innerHTML = '<span class="role">Modifies:</span> ' + escapeHtml(rc.modifies);
+        block.appendChild(mod);
+      }
+      if(rc.meaning_bn){
+        const meaning = document.createElement('div');
+        meaning.className = 'gp-phrase-note';
+        meaning.innerHTML = '<span class="role">বাংলা:</span> ' + escapeHtml(rc.meaning_bn);
+        block.appendChild(meaning);
+      }
+      card.appendChild(block);
+    });
+  }
+
+  // 4. Phrase-by-Phrase Analysis
+  addGroupHeading(4, 'partPhrasesLabel');
+  const phrases = Array.isArray(sentObj.phrases) ? sentObj.phrases : [];
   if(!phrases.length){
     addEmptyNote('gpNoData');
   }else{
@@ -3385,68 +3471,60 @@ function renderSentenceBreakdown(container, sentObj){
       item.className = 'gp-list-item';
       const tag = document.createElement('span');
       tag.className = 'gp-tag';
-      tag.textContent = ph.type_bn || '';
+      tag.textContent = ph.category || '';
       item.appendChild(tag);
       const rest = document.createElement('span');
-      rest.textContent = ' "' + (ph.text || '') + '" — ' + (ph.breakdown_bn || '');
+      let txt = ' "' + (ph.phrase || '') + '"';
+      if(ph.internal_breakdown_bn) txt += ' (' + ph.internal_breakdown_bn + ')';
+      txt += ' — ' + (ph.meaning_bn || '');
+      rest.textContent = txt;
       item.appendChild(rest);
       card.appendChild(item);
     });
   }
 
-  // Group 3: Non-finite & Reduced Structures
-  addGroupHeading(3, 'group3Label');
-  const nonfinite = Array.isArray(sentObj.group3_nonfinite) ? sentObj.group3_nonfinite : [];
-  if(!nonfinite.length){
-    addEmptyNote('gpNoNonfinite');
-  }else{
-    nonfinite.forEach(nf=>{
-      const item = document.createElement('div');
-      item.className = 'gp-list-item';
-      const tag = document.createElement('span');
-      tag.className = 'gp-tag';
-      tag.textContent = nf.type_bn || '';
-      item.appendChild(tag);
-      const rest = document.createElement('span');
-      rest.textContent = ' "' + (nf.text || '') + '" — ' + (nf.note_bn || '');
-      item.appendChild(rest);
-      card.appendChild(item);
-    });
-  }
-
-  // Group 4: Modifier & Complement Relationships
-  addGroupHeading(4, 'group4Label');
-  const modifiers = Array.isArray(sentObj.group4_modifiers) ? sentObj.group4_modifiers : [];
-  if(!modifiers.length){
+  // 5. Complete Grammatical Tree
+  addGroupHeading(5, 'partTreeLabel');
+  const tree = Array.isArray(sentObj.grammatical_tree) ? sentObj.grammatical_tree : [];
+  if(!tree.length){
     addEmptyNote('gpNoData');
   }else{
-    modifiers.forEach(m=>{
+    tree.forEach(node=>{
       const item = document.createElement('div');
-      item.className = 'gp-list-item';
-      item.innerHTML = '<span class="term">' + escapeHtml(m.modifier || '') + '</span> → <span class="term">' +
-        escapeHtml(m.target || '') + '</span>' + (m.note_bn ? (' — ' + escapeHtml(m.note_bn)) : '');
+      item.className = 'gp-tree-item';
+      item.innerHTML = '<span class="gp-tree-bracket">[' + escapeHtml(node.phrase || '') + ']</span>' +
+        '<span class="gp-tree-cat">→ ' + escapeHtml(node.category_function_bn || '') + '</span>' +
+        '<span class="gp-tree-bn">→ ' + escapeHtml(node.meaning_bn || '') + '</span>';
       card.appendChild(item);
     });
   }
 
-  // Group 5: Word-Level & Final Summary
-  addGroupHeading(5, 'group5Label');
-  const words = Array.isArray(sentObj.group5_words) ? sentObj.group5_words : [];
-  if(!words.length){
-    addEmptyNote('gpNoData');
+  // 6. Key Corrections
+  addGroupHeading(6, 'partCorrectionsLabel');
+  const corrections = Array.isArray(sentObj.key_corrections) ? sentObj.key_corrections : [];
+  if(!corrections.length){
+    addEmptyNote('gpNoCorrections');
   }else{
-    words.forEach(w=>{
-      const item = document.createElement('div');
-      item.className = 'gp-list-item';
-      item.innerHTML = '<span class="term">' + escapeHtml(w.word || '') + '</span> = ' + escapeHtml(w.pos_bn || '');
-      card.appendChild(item);
+    corrections.forEach(c=>{
+      const block = document.createElement('div');
+      block.className = 'gp-correction-block';
+      const issue = document.createElement('div');
+      issue.className = 'gp-correction-issue';
+      issue.textContent = '❌ ' + (c.issue || '');
+      block.appendChild(issue);
+      const fix = document.createElement('div');
+      fix.className = 'gp-correction-fix';
+      fix.textContent = '✅ ' + (c.correction || '');
+      block.appendChild(fix);
+      if(c.explanation_bn){
+        const note = document.createElement('div');
+        note.className = 'gp-phrase-note';
+        note.textContent = c.explanation_bn;
+        block.appendChild(note);
+      }
+      card.appendChild(block);
     });
   }
-
-  const meaning = document.createElement('div');
-  meaning.className = 'gp-meaning';
-  meaning.textContent = sentObj.meaning_bn || '';
-  card.appendChild(meaning);
 
   container.appendChild(card);
 }

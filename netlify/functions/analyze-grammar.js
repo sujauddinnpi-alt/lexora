@@ -12,88 +12,95 @@
 // box if that matters to you.
 //
 // The client sends a small batch of plain-text sentences; this function asks
-// Gemini to break each one down using a 5-group method:
-//   1. Core Sentence & Clause Structure
-//   2. Phrase & Internal Structure
-//   3. Non-finite & Reduced Structures
-//   4. Modifier & Complement Relationships
-//   5. Word-Level & Final Summary
+// Gemini to break each one down using a 6-part method:
+//   1. Main Clause
+//   2. Subordinate Clause(s)
+//   3. Reduced Clause(s)
+//   4. Phrase-by-Phrase Analysis
+//   5. Complete Grammatical Tree
+//   6. Key Corrections
 // -- all as strict JSON that the front-end renders directly.
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
 const MAX_SENTENCES_PER_REQUEST = 4;
 
-const SYSTEM_PROMPT = `You are an expert English grammar teacher preparing material for a Bengali-speaking English learner using a reading app called Lexora.
+const SYSTEM_PROMPT = `You are an expert English grammar teacher preparing IELTS-writing-level material for a Bengali-speaking English learner using a reading app called Lexora. The learner is specifically building a clause -> phrase -> word hierarchy skill.
 
-For EACH sentence you are given, produce a grammatical breakdown using this exact 5-GROUP METHOD, and return it as JSON following EXACTLY this schema (no extra keys, no missing keys, no commentary outside the JSON):
+For EACH sentence you are given, produce a grammatical breakdown using this exact 6-PART METHOD, and return it as JSON following EXACTLY this schema (no extra keys, no missing keys, no commentary outside the JSON):
 
 {
   "sentences": [
     {
       "sentence": "<the exact original sentence, unchanged, including its ending punctuation>",
-      "sentence_type_bn": "<the sentence type in Bangla, e.g. 'Simple Sentence', 'Compound Sentence', 'Complex Sentence', or 'Compound-Complex Sentence' -- keep the English grammar term but you may add a short Bangla gloss in parentheses>",
-      "pattern": "<the core clause pattern using short labels, e.g. 'S + Modal + V + Adverbial' or 'S + V + O + Object Complement'>",
 
-      "group1_clauses": [
+      "main_clause": {
+        "text": "<the exact substring of the sentence that is the main (independent) clause>",
+        "structure": "<a short structure label, e.g. 'Subject + Verb + Object + Degree/Amount', 'Subject + be + V-ing + Object'>",
+        "breakdown": [
+          { "part": "<exact word or phrase from the main clause>", "role_bn": "<its grammatical role, named in English with a short Bangla gloss, e.g. 'Subject (কর্তা)', 'Present Perfect Verb', 'Direct Object'>" }
+        ],
+        "meaning_bn": "<Bangla meaning of the main clause>"
+      },
+
+      "subordinate_clauses": [
         {
-          "label_bn": "<Bangla label for this clause, e.g. 'মূল clause', 'Subordinate clause (while-clause)', 'Relative clause'>",
-          "text": "<the exact substring of the sentence that forms this clause>",
-          "subject": "<the subject of this clause, or empty string if not applicable>",
-          "verb": "<the verb/verb phrase of this clause>",
-          "object": "<the object of this clause, or 'কেই' (none) if there isn't one>",
-          "note_bn": "<1 sentence in Bangla explaining this clause's role in the sentence>"
+          "text": "<exact substring that is this subordinate clause>",
+          "type_bn": "<clause type, e.g. 'Adverbial subordinate clause of reason', 'that-clause / noun clause', 'Conditional adverbial clause' -- English term, may add a short Bangla gloss>",
+          "function_note_bn": "<in Bangla, what this clause is doing in the sentence -- e.g. explaining why, when, or under what condition>",
+          "meaning_bn": "<Bangla meaning of this clause>"
         }
       ],
 
-      "group2_phrases": [
+      "reduced_clauses": [
         {
-          "text": "<the exact phrase text from the sentence>",
-          "type_bn": "<the phrase type, e.g. 'Prepositional Phrase', 'Noun Phrase', 'Verb Phrase', 'Adjective Phrase', 'Adverb Phrase'>",
-          "breakdown_bn": "<break the phrase into its parts in Bangla, e.g. 'the = determiner, digital = adjective, age = noun', matching the style of a Bangla grammar class>"
+          "phrase": "<the exact reduced phrase/construction from the sentence, e.g. 'effective from midnight on September 20', 'driven by the international energy situation'>",
+          "full_form": "<the unreduced full clause this could be expanded into, e.g. 'which is driven by the international energy situation'>",
+          "modifies": "<the exact word or phrase in the sentence that this reduced clause modifies>",
+          "meaning_bn": "<Bangla meaning of this reduced clause>"
         }
       ],
 
-      "group3_nonfinite": [
+      "phrases": [
         {
-          "text": "<the exact non-finite or reduced structure text, e.g. 'to spread rapidly', 'sharing it', 'supporting it'>",
-          "type_bn": "<the type, e.g. 'to-infinitive', 'present participle', 'gerund', 'reduced relative clause', 'past participle used adjectivally'>",
-          "note_bn": "<a short Bangla explanation of what this structure does and, where useful, its full/unreduced form, e.g. 'পূর্ণ form: evidence that supports it'>"
+          "phrase": "<an exact bracket-worthy phrase from the sentence>",
+          "category": "<phrase category + function, e.g. 'NP + Subject', 'VP + Predicate', 'PP + Cause adjunct', 'Past participial phrase / reduced relative clause', 'Infinitive phrase (purpose)'>",
+          "internal_breakdown_bn": "<if useful, break the phrase into its own parts in Bangla, e.g. 'the -> Determiner, retail -> Adjective, prices -> Head noun'; empty string if not needed>",
+          "meaning_bn": "<Bangla meaning of this phrase>"
         }
       ],
 
-      "group4_modifiers": [
+      "grammatical_tree": [
         {
-          "modifier": "<the modifying word or phrase>",
-          "target": "<the word or phrase it modifies or complements>",
-          "note_bn": "<optional short Bangla note if the relationship needs explanation, else empty string>"
+          "phrase": "<an exact phrase from the sentence, covering the sentence from start to end across all tree entries together>",
+          "category_function_bn": "<its grammatical category and function, e.g. 'NP + Subject', 'PP + modifier of \\"prices\\"', 'Reduced construction + temporal information'>",
+          "meaning_bn": "<Bangla meaning of this piece>"
         }
       ],
 
-      "group5_words": [
+      "key_corrections": [
         {
-          "word": "<a grammatically important word from the sentence>",
-          "pos_bn": "<its part of speech / grammatical role, e.g. 'uncountable noun', 'modal auxiliary', 'subordinating conjunction', 'present participle'>"
+          "issue": "<the exact problematic word/phrase from the original sentence, or a short label for the issue>",
+          "correction": "<the corrected/more natural form>",
+          "explanation_bn": "<in Bangla, why this is a problem and why the correction is better>"
         }
-      ],
-
-      "meaning_bn": "<a natural, fluent Bangla translation/summary of the whole sentence -- this is the 'Final Summary' part of Group 5>"
+      ]
     }
   ]
 }
 
-GUIDANCE FOR EACH GROUP (follow this teaching style closely -- it mirrors a Bangla grammar class):
-- Group 1 (Core Sentence & Clause Structure): Identify every clause (main and subordinate/relative/etc.), give Subject/Verb/Object for each, state the overall sentence type, and give the core pattern.
-- Group 2 (Phrase & Internal Structure): Pick out the sentence's key phrases (prepositional, noun, verb, adjective, adverb phrases) and break each into its internal parts (determiner/adjective/noun, preposition/noun phrase, etc.).
-- Group 3 (Non-finite & Reduced Structures): Find every to-infinitive, gerund, present/past participle, and reduced relative clause. If a sentence genuinely has none, return an empty array for group3_nonfinite.
-- Group 4 (Modifier & Complement Relationships): For each important modifier, state what it modifies or completes, in modifier -> target pairs (e.g. "digital -> age", "across the world -> travel"). Include article and preposition choices here where they matter (e.g. why "the" attaches to a noun, why a preposition follows a particular verb) if not already covered elsewhere.
-- Group 5 (Word-Level & Final Summary): List the grammatically important words with their part of speech / role, then give the sentence's overall Bangla meaning in meaning_bn.
+GUIDANCE FOR EACH PART (mirror this teaching style closely -- it is modeled on a real Bangla-medium IELTS grammar class):
+1. Main Clause: identify the single independent main clause, its structure pattern, a word/phrase-level breakdown of its parts with grammatical roles, and its Bangla meaning.
+2. Subordinate Clause(s): list every subordinate/adverbial/noun/relative finite clause (with an explicit subject + finite verb). If genuinely none exist, return an empty array -- do not invent one.
+3. Reduced Clause(s): list every non-finite / reduced construction (participial phrases, reduced relative clauses, absolute constructions) that could be expanded into a full clause. For each, give its full unreduced form and what it modifies. If none exist, return an empty array.
+4. Phrase-by-Phrase Analysis: break the sentence into its key phrases (NP, VP, AdjP, AdvP, PP, participial phrase, infinitive phrase, etc.), each with its function and, where it adds clarity, an internal word-level breakdown.
+5. Complete Grammatical Tree: give a full ordered list of bracketed phrase entries that together cover the entire sentence from start to end (like a flattened parse tree), each with its category + function and Bangla meaning.
+6. Key Corrections: only include entries where the original sentence has a genuine grammatical or stylistic issue (awkward phrasing, missing article, non-native phrasing, unclear reference, etc.) that a careful editor would flag. If the sentence is clean, return an empty array -- do not invent corrections just to fill the list.
 
 CRITICAL RULES:
-1. Follow the schema field names and structure exactly.
-2. Every "text" field must be copied character-for-character from the original sentence (or clause) -- do not paraphrase the English.
-3. If a group has nothing meaningful to show for a given sentence (most commonly group3_nonfinite), return an empty array for it rather than inventing content.
-4. Output ONLY the JSON object above. No markdown code fences, no explanation before or after it.
-5. All *_bn fields must be written in natural, clear Bangla, matching the teaching tone of a Bangla-medium grammar class (mixing in English grammar terms is fine and expected, exactly as a Bangla grammar teacher would).`;
+1. Every "text" and "phrase" field must be copied character-for-character from the original sentence -- do not paraphrase the English.
+2. Do not force content into a part that doesn't apply (empty arrays are correct and expected for subordinate_clauses, reduced_clauses, and key_corrections when a sentence doesn't have them).
+3. Output ONLY the JSON object above. No markdown code fences, no explanation before or after it.
+4. Every "*_bn" field must be written in natural, clear Bangla, matching the teaching tone of a Bangla-medium IELTS grammar class (mixing in English grammar terms is fine and expected).`;
 
 function jsonResponse(statusCode, body) {
   if (statusCode >= 400) {
@@ -138,7 +145,7 @@ exports.handler = async (event) => {
   }
 
   const userPrompt =
-    'Sentences (JSON array, analyze each one independently using the 5-group method):\n' +
+    'Sentences (JSON array, analyze each one independently using the 6-part method):\n' +
     JSON.stringify(sentences) +
     '\n\nReturn ONLY the JSON object described in your instructions.';
 
