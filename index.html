@@ -257,6 +257,20 @@ header{ margin-bottom: 14px; text-align:left; }
   border:none; padding: 12px 20px; min-height:44px; border-radius: 10px; cursor:pointer; width:100%; margin-bottom: 18px;
 }
 .analyze-btn:disabled{ opacity:0.6; cursor:default; }
+.archive-save-btn{ background: #2c7a4b; }
+.archive-delete-btn{ background: #a33; margin-bottom: 16px; }
+.archive-item-card{
+  border: 1.5px solid var(--paper-dark); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; background: var(--paper);
+  cursor: pointer;
+}
+.archive-item-title{ font-family:'Fraunces', serif; font-size:15px; font-weight:700; color: var(--navy); margin-bottom:4px; }
+.archive-item-snippet{ font-family:'Hind Siliguri'; font-size:13px; color: var(--ink); line-height:1.5; margin-bottom:6px; }
+.archive-item-meta{ font-family:'Hind Siliguri'; font-size:11.5px; color: var(--ink-soft); display:flex; justify-content:space-between; align-items:center; }
+.archive-item-badges{ display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+.archive-item-badge{
+  font-family:'Hind Siliguri'; font-size:10.5px; font-weight:600; color: var(--navy);
+  background: rgba(43,125,219,0.14); border-radius:6px; padding:2px 7px;
+}
 .pos-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; font-size:12px; }
 .pos-legend span{ padding:3px 10px; border-radius:12px; font-family:'Work Sans'; font-weight:600; }
 .article-highlighted{
@@ -285,6 +299,7 @@ header{ margin-bottom: 14px; text-align:left; }
 }
 .article-empty-msg{ font-size:13px; color:var(--ink-soft); padding:10px 0; }
 .article-status-msg{ font-size:13px; color:#b3261e; padding:8px 0 2px; }
+.article-status-msg.success{ color:#1f7a3d; }
 
 .vocab-table{ width:100%; border-collapse: collapse; margin-bottom: 18px; font-family:'Hind Siliguri'; font-size:13px; }
 .vocab-table th{
@@ -384,6 +399,7 @@ header{ margin-bottom: 14px; text-align:left; }
   <div class="side-menu" id="sideMenu">
     <div class="side-menu-brand"><img class="side-menu-mark" src="icons/icon-192.png" alt="">Lex<span>ora</span></div>
     <button class="side-menu-item" id="menuProfileBtn" data-i18n="menuProfile">👤 প্রোফাইল সেটিংস</button>
+    <button class="side-menu-item" id="menuArchiveBtn" data-i18n="menuArchive">🗄️ আর্কাইভ</button>
     <button class="side-menu-item logout" id="menuLogoutBtn" data-i18n="menuLogout">🚪 লগ আউট</button>
   </div>
 </div>
@@ -483,6 +499,46 @@ header{ margin-bottom: 14px; text-align:left; }
     </div>
   </section>
 
+  <!-- ---------- ARCHIVE LIST SCREEN ---------- -->
+  <section class="screen" id="screen-archive">
+    <div class="batch-topbar">
+      <button class="back-btn" id="archiveBackBtn" data-i18n="back">← ফিরুন</button>
+      <div class="batch-title" data-i18n="archiveTitle">আর্কাইভ</div>
+    </div>
+    <div class="article-empty-msg" data-i18n="archiveIntro">সংরক্ষণ করা শব্দভাণ্ডার, গভীর বিশ্লেষণ ও অনুবাদ এখানে পরে দেখতে পাবেন।</div>
+    <div id="archiveListWrap"></div>
+  </section>
+
+  <!-- ---------- ARCHIVE DETAIL SCREEN ---------- -->
+  <section class="screen" id="screen-archive-detail">
+    <div class="batch-topbar">
+      <button class="back-btn" id="archiveDetailBackBtn" data-i18n="back">← ফিরুন</button>
+      <div class="batch-title" id="archiveDetailTitle">আর্কাইভ</div>
+    </div>
+    <button class="analyze-btn archive-delete-btn" id="archiveDeleteBtn" data-i18n="archiveDeleteBtn">🗑️ এই এন্ট্রি মুছুন</button>
+    <div class="article-status-msg" id="archiveDetailStatus" style="display:none;"></div>
+
+    <div class="section-label" id="archiveDetailArticleLabel" data-i18n="archiveOriginalArticle">মূল আর্টিকেল</div>
+    <div class="article-empty-msg" id="archiveDetailArticleText" style="white-space:pre-wrap;"></div>
+
+    <div id="archiveDetailVocabSection">
+      <div class="section-label" data-i18n="keyVocabLabel">Part 1: মূল শব্দভাণ্ডার (Key Vocabulary)</div>
+      <div id="archiveDetailKeyVocab"></div>
+      <div class="section-label" data-i18n="phrasesLabel">গুরুত্বপূর্ণ শব্দগুচ্ছ (Important Phrases)</div>
+      <div id="archiveDetailPhrases"></div>
+    </div>
+
+    <div id="archiveDetailGrammarSection">
+      <div class="section-label" data-i18n="deepGrammarLabel">গভীর ব্যাকরণ বিশ্লেষণ (বাক্য ধরে ধরে)</div>
+      <div id="archiveDetailGrammar"></div>
+    </div>
+
+    <div id="archiveDetailTranslationSection">
+      <div class="section-label" data-i18n="translationLabel">বাংলা অনুবাদ</div>
+      <div class="article-translated" id="archiveDetailTranslation"></div>
+    </div>
+  </section>
+
   <!-- ---------- DASHBOARD SCREEN ---------- -->
   <section class="screen" id="screen-dashboard">
     <div class="dash-topbar">
@@ -508,6 +564,9 @@ header{ margin-bottom: 14px; text-align:left; }
       <div class="article-status-msg" id="articleStatusMsg" style="display:none;"></div>
 
       <div id="articleResults" style="display:none;">
+
+        <button class="analyze-btn archive-save-btn" id="saveToArchiveBtn" data-i18n="archiveSaveBtn">🗄️ আর্কাইভে সংরক্ষণ করুন</button>
+        <div class="article-status-msg" id="archiveSaveStatus" style="display:none;"></div>
 
         <div class="section-label" data-i18n="keyVocabLabel">Part 1: মূল শব্দভাণ্ডার (Key Vocabulary)</div>
         <div id="keyVocabTableWrap"></div>
@@ -690,6 +749,7 @@ const I18N = {
     chooseBatch: 'ব্যাচ বেছে নিন',
     setComingSoon: 'এই ওয়ার্ড সেটে এখনো কোনো ব্যাচ যোগ করা হয়নি — শীঘ্রই আসছে।',
     menuProfile: '👤 প্রোফাইল সেটিংস',
+    menuArchive: '🗄️ আর্কাইভ',
     menuLogout: '🚪 লগ আউট',
     tabFlash: 'ফ্ল্যাশকার্ড',
     tabStory: 'গল্পে শব্দ',
@@ -728,6 +788,22 @@ const I18N = {
     vocabColContext: 'Contextual meaning',
     translationLabel: 'বাংলা অনুবাদ',
     translationIntro: 'শব্দে শব্দে নয় — AI দিয়ে ভাবানুবাদ (মূল অর্থ অনুযায়ী স্বাভাবিক বাংলা)।',
+    archiveTitle: 'আর্কাইভ',
+    archiveIntro: 'সংরক্ষণ করা শব্দভাণ্ডার, গভীর বিশ্লেষণ ও অনুবাদ এখানে পরে দেখতে পাবেন।',
+    archiveSaveBtn: '🗄️ আর্কাইভে সংরক্ষণ করুন',
+    archiveSavingBtn: 'সংরক্ষণ হচ্ছে...',
+    archiveSavedMsg: 'আর্কাইভে সংরক্ষিত হয়েছে।',
+    archiveSaveError: 'দুঃখিত, সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।',
+    archiveLoginRequired: 'আর্কাইভ ব্যবহার করতে লগইন করা প্রয়োজন।',
+    archiveEmpty: 'আর্কাইভ এখনো খালি — কোনো আর্টিকেল বিশ্লেষণ করে সংরক্ষণ করুন।',
+    archiveDeleteBtn: '🗑️ এই এন্ট্রি মুছুন',
+    archiveDeleteConfirm: 'এই এন্ট্রিটি স্থায়ীভাবে মুছে ফেলতে চান?',
+    archiveDeletedMsg: 'মুছে ফেলা হয়েছে।',
+    archiveOriginalArticle: 'মূল আর্টিকেল',
+    archiveBadgeVocab: 'শব্দভাণ্ডার',
+    archiveBadgeGrammar: 'গভীর বিশ্লেষণ',
+    archiveBadgeTranslation: 'অনুবাদ',
+    archiveLoadError: 'আর্কাইভ লোড করা যায়নি।',
     translateBtn: 'পুরো অনুবাদ দেখুন',
     translatingBtn: 'অনুবাদ হচ্ছে...',
     noDifficultWords: 'এই লেখায় উল্লেখযোগ্য কোনো শব্দ/শব্দগুচ্ছ পাওয়া যায়নি।',
@@ -791,6 +867,7 @@ const I18N = {
     chooseBatch: 'Choose a Batch',
     setComingSoon: 'No batches added to this word set yet — coming soon.',
     menuProfile: '👤 Profile Settings',
+    menuArchive: '🗄️ Archive',
     menuLogout: '🚪 Log Out',
     tabFlash: 'Flashcards',
     tabStory: 'Word Stories',
@@ -829,6 +906,22 @@ const I18N = {
     vocabColContext: 'Contextual meaning',
     translationLabel: 'Bangla Translation',
     translationIntro: 'Not word-for-word — a natural, meaning-based (sense-for-sense) Bangla translation, powered by AI.',
+    archiveTitle: 'Archive',
+    archiveIntro: 'Saved vocabulary, deep analysis, and translations will appear here for later revision.',
+    archiveSaveBtn: '🗄️ Save to Archive',
+    archiveSavingBtn: 'Saving...',
+    archiveSavedMsg: 'Saved to archive.',
+    archiveSaveError: 'Sorry, could not save. Please try again.',
+    archiveLoginRequired: 'You need to be logged in to use the archive.',
+    archiveEmpty: 'Your archive is empty — analyze an article and save it here.',
+    archiveDeleteBtn: '🗑️ Delete this entry',
+    archiveDeleteConfirm: 'Permanently delete this entry?',
+    archiveDeletedMsg: 'Deleted.',
+    archiveOriginalArticle: 'Original Article',
+    archiveBadgeVocab: 'Vocabulary',
+    archiveBadgeGrammar: 'Deep Analysis',
+    archiveBadgeTranslation: 'Translation',
+    archiveLoadError: 'Could not load the archive.',
     translateBtn: 'Show Full Translation',
     translatingBtn: 'Translating...',
     noDifficultWords: 'No notable words or phrases were found in this text.',
@@ -2133,7 +2226,40 @@ const WORDS_B18 = [
 {w:"Expropriate", pos:"verb", pron:"এক্সপ্রোপ্রিয়েট /ɪksˈprəʊ.pri.eɪt/", bn:"সরকার বা কর্তৃপক্ষ কর্তৃক ব্যক্তিগত সম্পত্তি জোরপূর্বক অধিগ্রহণ করা", syn:["confiscate","seize","appropriate","commandeer"], ant:["return","restore","relinquish"], icon:"🏛️", cue:"জোরপূর্বক অধিগ্রহণ", hint:"ল্যাটিন 'ex-' (বাইরে) + 'proprius' (নিজস্ব) থেকে।", forms:"expropriate / expropriated / expropriated / expropriating", usage:"The government expropriated the land to build a new highway."},
 {w:"Misappropriate", pos:"verb", pron:"মিসঅ্যাপ্রোপ্রিয়েট /ˌmɪs.əˈprəʊ.pri.eɪt/", bn:"অসাধুভাবে অন্যের অর্থ বা সম্পত্তি নিজের কাজে ব্যবহার করা", syn:["embezzle","misuse","pilfer","steal"], ant:["return","restore"], icon:"💰", cue:"অসাধু আত্মসাৎ", hint:"'mis-' (ভুল) + 'appropriate' (নিজের করে নেওয়া) থেকে।", forms:"misappropriate / misappropriated / misappropriated / misappropriating", usage:"The treasurer was accused of misappropriating club funds."},
 {w:"Appropriate", pos:"verb/adj.", pron:"অ্যাপ্রোপ্রিয়েট /əˈprəʊ.pri.eɪt/ (verb), /əˈprəʊ.pri.ət/ (adj)", bn:"অনুমতি ছাড়া নিজের জন্য গ্রহণ করা; অথবা উপযুক্ত ও যথাযথ", syn:["seize","commandeer","suitable","fitting","proper"], ant:["relinquish","unsuitable","inappropriate"], icon:"✅", cue:"যথাযথ গ্রহণ", hint:"ল্যাটিন 'appropriare' (নিজের করে নেওয়া) থেকে।", forms:"appropriate / appropriated / appropriated / appropriating", usage:"The committee appropriated funds for the new library, and wearing a suit was appropriate for the interview."},
-{w:"Approbation", pos:"noun", pron:"অ্যাপ্রোবেশন /ˌæp.rəˈbeɪ.ʃən/", bn:"আনুষ্ঠানিক অনুমোদন বা প্রশংসাসূচক সমর্থন", syn:["approval","endorsement","commendation","sanction"], ant:["disapproval","condemnation","censure"], icon:"👍", cue:"আনুষ্ঠানিক অনুমোদন", hint:"ল্যাটিন 'approbare' (অনুমোদন করা) থেকে।", forms:null, usage:"The new policy received the approbation of the entire board."}
+{w:"Approbation", pos:"noun", pron:"অ্যাপ্রোবেশন /ˌæp.rəˈbeɪ.ʃən/", bn:"আনুষ্ঠানিক অনুমোদন বা প্রশংসাসূচক সমর্থন", syn:["approval","endorsement","commendation","sanction"], ant:["disapproval","condemnation","censure"], icon:"👍", cue:"আনুষ্ঠানিক অনুমোদন", hint:"ল্যাটিন 'approbare' (অনুমোদন করা) থেকে।", forms:null, usage:"The new policy received the approbation of the entire board."},
+{w:"Aberrant", pos:"adj.", pron:"অ্যাবারেন্ট /əˈber.ənt/", bn:"স্বাভাবিক বা প্রত্যাশিত থেকে বিচ্যুত; অস্বাভাবিক", syn:["abnormal","deviant","atypical"], ant:["normal","typical"], icon:"⚠️", cue:"স্বাভাবিক থেকে বিচ্যুতি", hint:"ল্যাটিন 'aberrare' (পথভ্রষ্ট হওয়া) থেকে।", forms:null, usage:"The scientist noted an aberrant pattern in the data."},
+{w:"Abeyance", pos:"noun", pron:"অ্যাবেয়েন্স /əˈbeɪ.əns/", bn:"সাময়িকভাবে স্থগিত অবস্থা", syn:["suspension","dormancy","postponement"], ant:["activation","continuation"], icon:"⏸️", cue:"সাময়িক স্থগিতাবস্থা", hint:"পুরনো ফরাসি 'abeance' (প্রত্যাশা) থেকে।", forms:null, usage:"The project was held in abeyance until funding was approved."},
+{w:"Abscond", pos:"verb", pron:"অ্যাবস্কন্ড /əbˈskɒnd/", bn:"গোপনে পালিয়ে যাওয়া, বিশেষত অপরাধ করে", syn:["flee","escape","bolt","decamp"], ant:["remain","stay"], icon:"🏃", cue:"গোপনে পলায়ন", hint:"ল্যাটিন 'abscondere' (লুকানো) থেকে।", forms:"abscond / absconded / absconded / absconding", usage:"The treasurer absconded with the company's funds."},
+{w:"Abstemious", pos:"adj.", pron:"অ্যাবস্টিমিয়াস /əbˈstiː.mi.əs/", bn:"খাওয়া-দাওয়ায় সংযমী ও পরিমিত", syn:["temperate","moderate","self-restrained"], ant:["gluttonous","self-indulgent"], icon:"🥗", cue:"সংযমী খাদ্যাভ্যাস", hint:"ল্যাটিন 'abs-' (থেকে দূরে) + 'temetum' (মদ) থেকে।", forms:null, usage:"He remained abstemious even at the lavish banquet."},
+{w:"Amalgamate", pos:"verb", pron:"অ্যামালগামেট /əˈmæl.ɡə.meɪt/", bn:"একত্রিত বা মিলিত করা", syn:["merge","combine","unite","consolidate"], ant:["separate","divide"], icon:"🔗", cue:"একত্রীকরণ", hint:"ল্যাটিন 'amalgama' (মিশ্রণ) থেকে।", forms:"amalgamate / amalgamated / amalgamated / amalgamating", usage:"The two companies decided to amalgamate their resources."},
+{w:"Ambivalence", pos:"noun", pron:"অ্যামবিভ্যালেন্স /æmˈbɪv.ə.ləns/", bn:"দুই বিপরীত অনুভূতি একসাথে থাকা", syn:["uncertainty","indecision","conflicted feelings"], ant:["certainty","conviction"], icon:"⚖️", cue:"দ্বিধাগ্রস্ত অনুভূতি", hint:"ল্যাটিন 'ambi-' (উভয় দিকে) + 'valentia' (শক্তি) থেকে।", forms:null, usage:"She felt ambivalence about accepting the job offer."},
+{w:"Analogous", pos:"adj.", pron:"অ্যানালগাস /əˈnæl.ə.ɡəs/", bn:"তুলনীয় বা সদৃশ", syn:["comparable","similar","parallel"], ant:["different","dissimilar"], icon:"🔁", cue:"তুলনীয় সাদৃশ্য", hint:"গ্রিক 'analogos' (সমানুপাতিক) থেকে।", forms:null, usage:"The heart is often described as analogous to a pump."},
+{w:"Anomalous", pos:"adj.", pron:"অ্যানোমালাস /əˈnɒm.ə.ləs/", bn:"অস্বাভাবিক বা নিয়মবহির্ভূত", syn:["abnormal","irregular","atypical"], ant:["normal","typical","regular"], icon:"❓", cue:"নিয়মবহির্ভূত ব্যতিক্রম", hint:"গ্রিক 'anomalos' (অসমান) থেকে।", forms:null, usage:"The results showed an anomalous spike in temperature."},
+{w:"Apprise", pos:"verb", pron:"অ্যাপ্রাইজ /əˈpraɪz/", bn:"জানানো বা অবহিত করা", syn:["inform","notify","advise","tell"], ant:["withhold","conceal"], icon:"📩", cue:"অবহিত করা", hint:"ফরাসি 'apprendre' (শেখানো) থেকে।", forms:"apprise / apprised / apprised / apprising", usage:"Please keep me apprised of any changes to the schedule."},
+{w:"Artless", pos:"adj.", pron:"আর্টলেস /ˈɑːt.ləs/", bn:"সরল ও অকপট, চতুরতাবিহীন", syn:["naive","innocent","guileless","unaffected"], ant:["cunning","artful","sophisticated"], icon:"🌼", cue:"সরল অকপটতা", hint:"'art' (কৌশল/চাতুর্য) + '-less' (বিহীন) থেকে।", forms:null, usage:"Her artless honesty charmed everyone in the room."},
+{w:"Attenuate", pos:"verb", pron:"অ্যাটেনুয়েট /əˈten.ju.eɪt/", bn:"পাতলা বা দুর্বল করা", syn:["weaken","dilute","reduce","thin"], ant:["strengthen","intensify"], icon:"📉", cue:"পাতলা/দুর্বল করা", hint:"ল্যাটিন 'attenuare' (পাতলা করা) থেকে।", forms:"attenuate / attenuated / attenuated / attenuating", usage:"The signal attenuates as it travels through the cable."},
+{w:"Audacious", pos:"adj.", pron:"অডেসিয়াস /ɔːˈdeɪ.ʃəs/", bn:"সাহসী ও দুঃসাহসিক, প্রায়ই ঔদ্ধত্যপূর্ণ", syn:["bold","daring","brazen","fearless"], ant:["timid","cautious","meek"], icon:"🦁", cue:"দুঃসাহসিক সাহস", hint:"ল্যাটিন 'audax' (সাহসী) থেকে।", forms:null, usage:"It was an audacious plan to cross the ocean alone."},
+{w:"Aver", pos:"verb", pron:"অ্যাভার /əˈvɜːr/", bn:"দৃঢ়ভাবে দাবি বা ঘোষণা করা", syn:["assert","declare","affirm","state"], ant:["deny","refute"], icon:"🗣️", cue:"দৃঢ় দাবি", hint:"ল্যাটিন 'ad-' + 'verus' (সত্য) থেকে।", forms:"aver / averred / averred / averring", usage:"The witness averred that she saw the whole incident."},
+{w:"Beneficent", pos:"adj.", pron:"বেনেফিসেন্ট /bəˈnef.ɪ.sənt/", bn:"দয়ালু ও উপকারী কাজ করে এমন", syn:["kind","charitable","generous","benevolent"], ant:["malevolent","harmful"], icon:"🤲", cue:"দয়ালু উপকারিতা", hint:"ল্যাটিন 'bene-' (ভালো) + 'facere' (করা) থেকে।", forms:null, usage:"The beneficent old man donated most of his wealth to charity."},
+{w:"Bolster", pos:"verb", pron:"বোলস্টার /ˈbəʊl.stər/", bn:"সমর্থন বা শক্তিশালী করা", syn:["support","reinforce","strengthen","boost"], ant:["weaken","undermine"], icon:"🛡️", cue:"সমর্থন জোরদার করা", hint:"পুরনো ইংরেজি 'bolster' (বালিশ) থেকে।", forms:"bolster / bolstered / bolstered / bolstering", usage:"The new evidence bolstered the prosecution's case."},
+{w:"Bombastic", pos:"adj.", pron:"বমব্যাস্টিক /bɒmˈbæs.tɪk/", bn:"আড়ম্বরপূর্ণ ও অতিরঞ্জিত ভাষাযুক্ত", syn:["pompous","grandiloquent","inflated","pretentious"], ant:["plain","modest","understated"], icon:"🎭", cue:"আড়ম্বরপূর্ণ ভাষা", hint:"গ্রিক 'bombax' (তুলা, ভরাট অর্থে) থেকে।", forms:null, usage:"His bombastic speech impressed no one at the conference."},
+{w:"Boorish", pos:"adj.", pron:"বুরিশ /ˈbɔː.rɪʃ/", bn:"রুক্ষ, অভদ্র ও অমার্জিত", syn:["rude","uncouth","crude","ill-mannered"], ant:["polite","courteous","refined"], icon:"🤦", cue:"রুক্ষ অভদ্রতা", hint:"ডাচ 'boer' (কৃষক) থেকে।", forms:null, usage:"His boorish behavior at the dinner embarrassed everyone."},
+{w:"Burnish", pos:"verb", pron:"বার্নিশ /ˈbɜː.nɪʃ/", bn:"ঘষে উজ্জ্বল বা চকচকে করা", syn:["polish","shine","buff"], ant:["tarnish","dull"], icon:"✨", cue:"ঘষে উজ্জ্বল করা", hint:"পুরনো ফরাসি 'brunir' (বাদামি করা/পালিশ করা) থেকে।", forms:"burnish / burnished / burnished / burnishing", usage:"She burnished the old silver until it gleamed."},
+{w:"Buttress", pos:"verb/noun", pron:"বাট্রেস /ˈbʌt.rəs/", bn:"সমর্থন দেওয়া বা শক্ত ঠেকনা", syn:["support","reinforce","prop up","brace"], ant:["undermine","weaken"], icon:"🏛️", cue:"শক্ত ঠেকনা/সমর্থন", hint:"পুরনো ফরাসি 'bouterez' (ঠেলা দেওয়া) থেকে।", forms:"buttress / buttressed / buttressed / buttressing", usage:"New data buttressed the researcher's original hypothesis."},
+{w:"Castigation", pos:"noun", pron:"ক্যাস্টিগেশন /ˌkæs.tɪˈɡeɪ.ʃən/", bn:"কঠোর শাস্তি বা তীব্র সমালোচনা", syn:["punishment","rebuke","reprimand","censure"], ant:["praise","reward"], icon:"⚡", cue:"কঠোর সমালোচনা/শাস্তি", hint:"ল্যাটিন 'castigare' (শাস্তি দিয়ে সংশোধন করা) থেকে।", forms:null, usage:"The report faced harsh castigation from critics."},
+{w:"Coagulate", pos:"verb", pron:"কোয়াগুলেট /kəʊˈæɡ.jə.leɪt/", bn:"ঘন বা জমাট বাঁধা", syn:["clot","congeal","thicken","solidify"], ant:["liquefy","dissolve"], icon:"🩸", cue:"জমাট বাঁধা", hint:"ল্যাটিন 'coagulare' (জমাট বাঁধানো) থেকে।", forms:"coagulate / coagulated / coagulated / coagulating", usage:"Blood begins to coagulate soon after a cut."},
+{w:"Coda", pos:"noun", pron:"কোডা /ˈkəʊ.də/", bn:"সংগীত বা সাহিত্যকর্মের সমাপ্তি অংশ যা সারসংক্ষেপ করে", syn:["conclusion","epilogue","finale"], ant:["prelude","introduction"], icon:"🎼", cue:"সমাপ্তি অংশ", hint:"ল্যাটিন 'cauda' (লেজ) থেকে।", forms:null, usage:"The final chapter serves as a quiet coda to the whole story."},
+{w:"Complaisant", pos:"adj.", pron:"কমপ্লেইজ্যান্ট /kəmˈpleɪ.zənt/", bn:"অন্যকে খুশি করতে চেষ্টাশীল, অতিরিক্ত নম্র", syn:["obliging","agreeable","accommodating"], ant:["obstinate","disagreeable"], icon:"🙇", cue:"অতিরিক্ত নম্র সন্তুষ্টিকামী", hint:"ল্যাটিন 'complacere' (সন্তুষ্ট করা) থেকে।", forms:null, usage:"The complaisant assistant agreed to every request without question."},
+{w:"Compliant", pos:"adj.", pron:"কমপ্লায়ান্ট /kəmˈplaɪ.ənt/", bn:"নিয়ম বা নির্দেশ মেনে চলে এমন", syn:["obedient","conforming","submissive"], ant:["defiant","rebellious"], icon:"✅", cue:"নিয়ম মেনে চলা", hint:"ল্যাটিন 'complere' (পূর্ণ করা) থেকে।", forms:null, usage:"The factory is now fully compliant with safety regulations."},
+{w:"Confound", pos:"verb", pron:"কনফাউন্ড /kənˈfaʊnd/", bn:"বিভ্রান্ত বা হতবুদ্ধি করা", syn:["confuse","baffle","perplex","puzzle"], ant:["clarify","enlighten"], icon:"😵", cue:"বিভ্রান্ত করা", hint:"ল্যাটিন 'confundere' (একসাথে মিশিয়ে ফেলা) থেকে।", forms:"confound / confounded / confounded / confounding", usage:"The strange results confounded even the experts."},
+{w:"Contention", pos:"noun", pron:"কনটেনশন /kənˈten.ʃən/", bn:"দাবি বা মতবাদ; বিতর্ক", syn:["claim","assertion","dispute","argument"], ant:["agreement","consensus"], icon:"💭", cue:"দাবি/বিতর্ক", hint:"ল্যাটিন 'contendere' (প্রতিদ্বন্দ্বিতা করা) থেকে।", forms:null, usage:"Her main contention was that the policy would fail."},
+{w:"Conundrum", pos:"noun", pron:"কনানড্রাম /kəˈnʌn.drəm/", bn:"জটিল ধাঁধা বা কঠিন সমস্যা", syn:["puzzle","riddle","dilemma","mystery"], ant:["solution","certainty"], icon:"🧩", cue:"জটিল ধাঁধা", hint:"উৎস অনিশ্চিত, ষোড়শ শতাব্দীর ইংরেজি থেকে।", forms:null, usage:"Scientists still face this conundrum with no clear answer."},
+{w:"Converge", pos:"verb", pron:"কনভার্জ /kənˈvɜːdʒ/", bn:"একই বিন্দুতে মিলিত হওয়া", syn:["meet","merge","come together"], ant:["diverge","separate"], icon:"🔀", cue:"এক বিন্দুতে মিলন", hint:"ল্যাটিন 'con-' (একসাথে) + 'vergere' (ঝোঁকা) থেকে।", forms:"converge / converged / converged / converging", usage:"Several roads converge at the town's main square."},
+{w:"Convoluted", pos:"adj.", pron:"কনভলিউটেড /ˈkɒn.vəl.uː.tɪd/", bn:"জটিল ও প্যাঁচানো", syn:["complicated","intricate","tangled","complex"], ant:["simple","straightforward"], icon:"🌀", cue:"জটিল প্যাঁচানো", hint:"ল্যাটিন 'convolvere' (একসাথে গোটানো) থেকে।", forms:null, usage:"The plot of the novel is too convoluted to follow easily."},
+{w:"Craven", pos:"adj.", pron:"ক্রেভেন /ˈkreɪ.vən/", bn:"ভীরু ও কাপুরুষোচিত", syn:["cowardly","timid","faint-hearted"], ant:["brave","courageous","bold"], icon:"🐔", cue:"কাপুরুষোচিত ভীরুতা", hint:"পুরনো ফরাসি 'cravanter' (পরাজিত করা) থেকে।", forms:null, usage:"His craven refusal to help disappointed his friends."},
+{w:"Decorum", pos:"noun", pron:"ডেকোরাম /dɪˈkɔː.rəm/", bn:"শালীনতা ও যথাযথ আচরণবিধি", syn:["propriety","etiquette","dignity","politeness"], ant:["impropriety","indecency"], icon:"🎩", cue:"শালীন আচরণবিধি", hint:"ল্যাটিন 'decorus' (শোভন) থেকে।", forms:null, usage:"Guests were expected to maintain decorum at the formal dinner."},
+{w:"Default", pos:"noun/verb", pron:"ডিফল্ট /dɪˈfɒlt/", bn:"কাজ করতে ব্যর্থতা; পূর্বনির্ধারিত অবস্থা", syn:["failure","negligence","preset"], ant:["fulfillment","compliance"], icon:"⚙️", cue:"ব্যর্থতা/পূর্বনির্ধারিত", hint:"ল্যাটিন 'de-' + 'fallere' (প্রতারণা করা) থেকে।", forms:"default / defaulted / defaulted / defaulting", usage:"The company defaulted on its loan payments."},
+{w:"Denigrate", pos:"verb", pron:"ডেনিগ্রেট /ˈden.ɪ.ɡreɪt/", bn:"কারো সুনাম নষ্ট করা বা ছোট করে দেখা", syn:["belittle","disparage","defame","malign"], ant:["praise","honor","extol"], icon:"👎", cue:"সুনাম নষ্ট করা", hint:"ল্যাটিন 'denigrare' (কালো করা) থেকে।", forms:"denigrate / denigrated / denigrated / denigrating", usage:"He was criticized for trying to denigrate his opponent's achievements."}
 ];
 
 const STORIES_B18 = [
@@ -2142,7 +2268,161 @@ const STORIES_B18 = [
   text: `গ্রামের পুরোহিত সবসময় এক ভয়ংকর ___1___-এর কথা বলতেন, পৃথিবী ধ্বংসের এক মহাবিপর্যয়। তবে অনেকে বলতেন এই গল্পটি আসলে ___2___, এর সত্যতা প্রমাণিত নয়। তার কাছে এই ভবিষ্যদ্বাণী জ্ঞানের এক ___3___ ছিল, সর্বোচ্চ মহিমার প্রতীক। গ্রামবাসীরা দেবতাদের ___4___ করার জন্য পূজা দিত, যাতে তারা সন্তুষ্ট থাকেন। তরুণরা অবশ্য এই পুরনো রীতিনীতির মূল্য ঠিকমতো ___5___ করত না। কেউ কেউ তো একে সম্পূর্ণ ___6___ করে দেখত, গুরুত্বহীন মনে করত। ভবিষ্যদ্বাণীর কথা শুনে গ্রামের নতুন শিক্ষক বেশ ___7___ বোধ করলেন, ভবিষ্যৎ নিয়ে উদ্বিগ্ন হয়ে পড়লেন। তবে বোঝা গেল এটি আসলে এক ___8___, একটি ভুল বোঝাবুঝি মাত্র। পুরোহিতের ভাষা ছিল একেবারে ___9___, বহু পুরনো ও সেকেলে। তার লেখা পুঁথিগুলোও ছিল ___10___, সাধারণ মানুষের কাছে দুর্বোধ্য ও রহস্যময়।` },
 { title: "সম্পত্তি বিরোধের মীমাংসা", source: "এক কাল্পনিক ব্যবসায়িক বিরোধ অবলম্বনে",
   words: ["Arbitrate","Arbiter","Aptitude","Expropriate","Misappropriate","Appropriate","Approbation"],
-  text: `দুই ব্যবসায়ী প্রতিষ্ঠানের মধ্যে বিরোধ মেটাতে একজন নিরপেক্ষ ব্যক্তিকে ডাকা হলো ___1___ করার জন্য। তিনি ছিলেন এলাকার সবচেয়ে বিশ্বস্ত ___2___, যার রায়কে সবাই চূড়ান্ত বলে মেনে নিত। আইন বিষয়ে তার সহজাত ___3___ ছিল, ছোটবেলা থেকেই তিনি এতে দক্ষ ছিলেন। মামলাটি ছিল সরকার কর্তৃক একটি জমি জোরপূর্বক ___4___ করা নিয়ে। অভিযোগ ছিল, স্থানীয় কর্মকর্তা সেই জমির অর্থ ___5___ করেছিলেন, নিজের কাজে অসাধুভাবে ব্যবহার করেছিলেন। শুনানির পর কমিটি ন্যায্য ক্ষতিপূরণের অর্থ ___6___ করল, উপযুক্তভাবে বরাদ্দ করল। রায় ঘোষণার পর দুই পক্ষই সিদ্ধান্তের প্রতি পূর্ণ ___7___ জানাল, সন্তুষ্টি প্রকাশ করল।` }
+  text: `দুই ব্যবসায়ী প্রতিষ্ঠানের মধ্যে বিরোধ মেটাতে একজন নিরপেক্ষ ব্যক্তিকে ডাকা হলো ___1___ করার জন্য। তিনি ছিলেন এলাকার সবচেয়ে বিশ্বস্ত ___2___, যার রায়কে সবাই চূড়ান্ত বলে মেনে নিত। আইন বিষয়ে তার সহজাত ___3___ ছিল, ছোটবেলা থেকেই তিনি এতে দক্ষ ছিলেন। মামলাটি ছিল সরকার কর্তৃক একটি জমি জোরপূর্বক ___4___ করা নিয়ে। অভিযোগ ছিল, স্থানীয় কর্মকর্তা সেই জমির অর্থ ___5___ করেছিলেন, নিজের কাজে অসাধুভাবে ব্যবহার করেছিলেন। শুনানির পর কমিটি ন্যায্য ক্ষতিপূরণের অর্থ ___6___ করল, উপযুক্তভাবে বরাদ্দ করল। রায় ঘোষণার পর দুই পক্ষই সিদ্ধান্তের প্রতি পূর্ণ ___7___ জানাল, সন্তুষ্টি প্রকাশ করল।` },
+{ title: "গোয়েন্দা অফিসের অস্বাভাবিক ঘটনা", source: "এক কাল্পনিক তদন্তের গল্প অবলম্বনে",
+  words: ["Aberrant","Abeyance","Abscond","Abstemious","Amalgamate","Ambivalence","Analogous","Anomalous","Apprise","Artless"],
+  text: `হিসাবরক্ষকের আচরণে হঠাৎ এক ___1___ পরিবর্তন লক্ষ্য করা গেল, স্বাভাবিক থেকে বিচ্যুতি। তদন্ত সাময়িকভাবে ___2___ রাখা হলো, স্থগিত অবস্থায়। জানা গেল সে গোপনে ___3___ করেছে, পালিয়ে গেছে। অথচ সে সবসময় ছিল খাওয়া-দাওয়ায় ___4___, সংযমী স্বভাবের। দুই বিভাগের তথ্য ___5___ করে দেখা হলো, একত্রিত করে। তদন্তকারীর মনে জাগল এক ধরনের ___6___, দ্বিধাগ্রস্ত অনুভূতি। এই ঘটনাটি আগের একটি মামলার সাথে ___7___ মনে হলো, তুলনীয়। প্রমাণে কিছু ___8___ তথ্যও পাওয়া গেল, অস্বাভাবিক তথ্য। ঊর্ধ্বতন কর্মকর্তাকে বিষয়টি ___9___ করা হলো, অবহিত করা হলো। অভিযুক্তের সহকারী ছিল একেবারে ___10___, সরল ও অকপট।` },
+{ title: "সাহসী সাংবাদিকের প্রতিবেদন", source: "এক কাল্পনিক অনুসন্ধানী সাংবাদিকতার গল্প অবলম্বনে",
+  words: ["Attenuate","Audacious","Aver","Beneficent","Bolster","Bombastic","Boorish","Burnish","Buttress","Castigation"],
+  text: `সময়ের সাথে সাথে ঘটনার প্রভাব ___1___ হয়ে গেল, দুর্বল হয়ে পড়ল। সাংবাদিক এক ___2___ পরিকল্পনা নিয়ে এগোলেন, দুঃসাহসিক পরিকল্পনা। তিনি দৃঢ়ভাবে ___3___ করলেন যে তথ্য সত্য, দাবি করলেন। এক ___4___ ব্যবসায়ী গোপনে তাকে সাহায্য করলেন, দয়ালু ব্যবসায়ী। নতুন প্রমাণ তার প্রতিবেদনকে আরও ___5___ করল, জোরদার করল। মন্ত্রী সংবাদ সম্মেলনে এক ___6___ ভাষণ দিলেন, আড়ম্বরপূর্ণ ভাষণ। তার সহকারীর ___7___ আচরণ সাংবাদিকদের বিরক্ত করল, রুক্ষ আচরণ। প্রতিবেদনটি প্রকাশের আগে ভালোভাবে ___8___ করা হলো, ঘষে মেজে ঠিক করা হলো। একাধিক সূত্র প্রতিবেদনের দাবি ___9___ করল, সমর্থন জোগাল। প্রকাশের পর মন্ত্রী কঠোর ___10___-এর মুখে পড়লেন, সমালোচনার মুখে পড়লেন।` },
+{ title: "জটিল আদালতের মামলা", source: "এক কাল্পনিক আদালতের গল্প অবলম্বনে",
+  words: ["Coagulate","Coda","Complaisant","Compliant","Confound","Contention","Conundrum","Converge","Convoluted","Craven"],
+  text: `ময়নাতদন্তে দেখা গেল রক্ত স্বাভাবিকভাবে ___1___ হয়েছিল, জমাট বেঁধেছিল। মামলার শুনানির শেষ অংশ যেন এক নাটকীয় ___2___, সমাপ্তি অংশ। আসামির উকিল ছিলেন অতিরিক্ত ___3___, সবাইকে খুশি করতে চেষ্টাশীল। সাক্ষী প্রতিটি নির্দেশ মেনে ___4___ থাকলেন, বাধ্য থাকলেন। জটিল প্রমাণ বিচারককে ___5___ করে দিল, বিভ্রান্ত করল। উকিলের মূল ___6___ ছিল আসামি নির্দোষ, দাবি ছিল। পুরো মামলাটি হয়ে উঠল এক ___7___, জটিল ধাঁধা। একাধিক সাক্ষীর বক্তব্য একই বিন্দুতে ___8___ করল, মিলিত হলো। তবে মামলার কাহিনি ছিল বেশ ___9___, প্যাঁচানো। শেষে আসামি ভয়ে ___10___ আচরণ করল, কাপুরুষোচিত আচরণ করল।` },
+{ title: "শিষ্টাচার ও ব্যর্থতা", source: "এক কাল্পনিক অনুষ্ঠানের গল্প অবলম্বনে",
+  words: ["Decorum","Default","Denigrate"],
+  text: `অনুষ্ঠানে অতিথিদের কাছ থেকে যথাযথ ___1___ প্রত্যাশা করা হয়েছিল, শালীন আচরণ। ঋণ পরিশোধে ব্যর্থ হওয়ায় কোম্পানিটি ___2___ করল, ঋণখেলাপি হলো। প্রতিদ্বন্দ্বী তার প্রতিপক্ষকে প্রকাশ্যে ___3___ করার চেষ্টা করল, ছোট করার চেষ্টা করল।` }
+];
+
+const WORDS_B19 = [
+{w:"Derivative", pos:"adj./noun", pron:"ডেরিভেটিভ /dɪˈrɪv.ə.tɪv/", bn:"মৌলিক নয়, অন্য কিছু থেকে উদ্ভূত", syn:["unoriginal","imitative","secondary"], ant:["original","innovative"], icon:"🔄", cue:"অ-মৌলিক উদ্ভূত", hint:"ল্যাটিন 'derivare' (প্রবাহিত করা) থেকে।", forms:null, usage:"Critics called the film derivative of earlier sci-fi classics."},
+{w:"Deterrent", pos:"noun", pron:"ডিটারেন্ট /dɪˈter.ənt/", bn:"যা নিরুৎসাহিত বা প্রতিরোধ করে", syn:["hindrance","discouragement","obstacle"], ant:["incentive","encouragement"], icon:"🚫", cue:"নিরুৎসাহিতকারী বাধা", hint:"ল্যাটিন 'deterrere' (ভয় দেখিয়ে থামানো) থেকে।", forms:null, usage:"High fines act as a deterrent against littering."},
+{w:"Diatribe", pos:"noun", pron:"ডায়াট্রাইব /ˈdaɪ.ə.traɪb/", bn:"তীব্র ও তিক্ত ভর্ৎসনামূলক বক্তব্য", syn:["tirade","rant","invective","harangue"], ant:["praise","tribute"], icon:"😡", cue:"তিক্ত ভর্ৎসনা", hint:"গ্রিক 'diatribe' (সময় কাটানো, পরে সমালোচনা অর্থে) থেকে।", forms:null, usage:"He launched into a diatribe against modern politics."},
+{w:"Dichotomy", pos:"noun", pron:"ডাইকটমি /daɪˈkɒt.ə.mi/", bn:"দুই ভাগে বিভক্তি, বিশেষত পরস্পরবিরোধী", syn:["division","split","contrast","polarity"], ant:["unity","wholeness"], icon:"⚔️", cue:"দ্বিবিভক্তি", hint:"গ্রিক 'dicha' (দুই ভাগে) + 'tomia' (কাটা) থেকে।", forms:null, usage:"There is a clear dichotomy between theory and practice here."},
+{w:"Diffidence", pos:"noun", pron:"ডিফিডেন্স /ˈdɪf.ɪ.dəns/", bn:"লাজুকতা ও আত্মবিশ্বাসের অভাব", syn:["shyness","timidity","hesitancy"], ant:["confidence","boldness"], icon:"😳", cue:"আত্মবিশ্বাসের অভাব", hint:"ল্যাটিন 'dis-' (না) + 'fidere' (বিশ্বাস করা) থেকে।", forms:null, usage:"Her diffidence kept her from speaking up in meetings."},
+{w:"Diffuse", pos:"adj./verb", pron:"ডিফিউজ /dɪˈfjuːz/ (verb), /dɪˈfjuːs/ (adj)", bn:"বিক্ষিপ্ত ও বিস্তৃত; ছড়িয়ে দেওয়া", syn:["scattered","spread out","disperse"], ant:["concentrated","focused"], icon:"💨", cue:"বিক্ষিপ্তভাবে ছড়ানো", hint:"ল্যাটিন 'diffundere' (ছড়িয়ে দেওয়া) থেকে।", forms:"diffuse / diffused / diffused / diffusing", usage:"The essay's argument felt diffuse and hard to follow."},
+{w:"Digression", pos:"noun", pron:"ডাইগ্রেশন /daɪˈɡreʃ.ən/", bn:"মূল বিষয় থেকে সরে যাওয়া", syn:["deviation","tangent","detour"], ant:["focus","relevance"], icon:"🛤️", cue:"মূল বিষয় থেকে বিচ্যুতি", hint:"ল্যাটিন 'digredi' (সরে যাওয়া) থেকে।", forms:null, usage:"The lecture included a long digression about the professor's travels."},
+{w:"Dirge", pos:"noun", pron:"ডার্জ /dɜːdʒ/", bn:"শোকগীতি, মৃত্যুতে গাওয়া বিষণ্ণ সংগীত", syn:["lament","elegy","requiem"], ant:["celebration","jubilation"], icon:"🎵", cue:"শোকগীতি", hint:"ল্যাটিন 'dirige' (পরিচালনা করো, শোকসংগীতের প্রথম শব্দ) থেকে।", forms:null, usage:"A slow dirge played as the procession moved through the streets."},
+{w:"Disabuse", pos:"verb", pron:"ডিসঅ্যাবিউজ /ˌdɪs.əˈbjuːz/", bn:"ভুল ধারণা দূর করা", syn:["correct","undeceive","enlighten"], ant:["mislead","deceive"], icon:"💡", cue:"ভুল ধারণা দূরীকরণ", hint:"'dis-' (বিপরীত) + 'abuse' (অপব্যবহার) থেকে।", forms:"disabuse / disabused / disabused / disabusing", usage:"The teacher tried to disabuse students of their misconceptions."},
+{w:"Discerning", pos:"adj.", pron:"ডিসার্নিং /dɪˈsɜː.nɪŋ/", bn:"সূক্ষ্ম বিচারবুদ্ধিসম্পন্ন", syn:["perceptive","insightful","astute","judicious"], ant:["undiscerning","oblivious"], icon:"🧐", cue:"সূক্ষ্ম বিচারবুদ্ধি", hint:"ল্যাটিন 'discernere' (আলাদা করে চেনা) থেকে।", forms:null, usage:"A discerning reader will notice the subtle irony in the text."},
+{w:"Discordant", pos:"adj.", pron:"ডিসকর্ড্যান্ট /dɪˈskɔː.dənt/", bn:"বেসুরো বা অসামঞ্জস্যপূর্ণ", syn:["clashing","jarring","inharmonious"], ant:["harmonious","consonant"], icon:"🎶", cue:"বেসুরো অসামঞ্জস্য", hint:"ল্যাটিন 'dis-' + 'cor' (হৃদয়) থেকে।", forms:null, usage:"The band played a discordant note that made the audience wince."},
+{w:"Discredit", pos:"verb", pron:"ডিসক্রেডিট /dɪsˈkred.ɪt/", bn:"সুনাম বা বিশ্বাসযোগ্যতা নষ্ট করা", syn:["disgrace","undermine","defame"], ant:["vindicate","credit"], icon:"📉", cue:"বিশ্বাসযোগ্যতা নষ্ট করা", hint:"'dis-' (বিপরীত) + 'credit' (বিশ্বাস) থেকে।", forms:"discredit / discredited / discredited / discrediting", usage:"The scandal discredited the once-respected politician."},
+{w:"Discrepancy", pos:"noun", pron:"ডিসক্রেপ্যান্সি /dɪˈskrep.ən.si/", bn:"অসামঞ্জস্য বা পার্থক্য", syn:["inconsistency","difference","disparity"], ant:["consistency","agreement"], icon:"⚖️", cue:"হিসাবের অসামঞ্জস্য", hint:"ল্যাটিন 'discrepare' (ভিন্ন শব্দ করা) থেকে।", forms:null, usage:"Auditors found a discrepancy in the company's financial records."},
+{w:"Disingenuous", pos:"adj.", pron:"ডিসইনজেনুয়াস /ˌdɪs.ɪnˈdʒen.ju.əs/", bn:"প্রকৃত সততার অভাব, কৃত্রিমভাবে অকপট", syn:["insincere","deceptive","dishonest"], ant:["genuine","sincere","candid"], icon:"🎭", cue:"কৃত্রিম অকপটতা", hint:"'dis-' + 'ingenuous' (সৎ) থেকে।", forms:null, usage:"It was disingenuous of him to claim he knew nothing about it."},
+{w:"Disjointed", pos:"adj.", pron:"ডিসজয়েন্টেড /dɪsˈdʒɔɪn.tɪd/", bn:"সঙ্গতিহীন ও বিচ্ছিন্ন", syn:["incoherent","fragmented","disconnected"], ant:["coherent","cohesive"], icon:"🧩", cue:"সঙ্গতিহীন বিচ্ছিন্নতা", hint:"'dis-' + 'joint' (জোড়া) থেকে।", forms:null, usage:"His disjointed speech confused most of the audience."},
+{w:"Dismiss", pos:"verb", pron:"ডিসমিস /dɪˈsmɪs/", bn:"বিবেচনা থেকে বাদ দেওয়া; বরখাস্ত করা", syn:["reject","disregard","discharge","fire"], ant:["consider","accept","hire"], icon:"🚪", cue:"বিবেচনা থেকে বাদ", hint:"ল্যাটিন 'dis-' + 'mittere' (পাঠানো) থেকে।", forms:"dismiss / dismissed / dismissed / dismissing", usage:"The judge dismissed the case for lack of evidence."},
+{w:"Dissemble", pos:"verb", pron:"ডিসেম্বল /dɪˈsem.bəl/", bn:"প্রকৃত অনুভূতি বা উদ্দেশ্য লুকানো", syn:["disguise","pretend","feign","mask"], ant:["reveal","disclose"], icon:"🎭", cue:"প্রকৃত রূপ লুকানো", hint:"ল্যাটিন 'dissimulare' (ছদ্মবেশ ধারণ করা) থেকে।", forms:"dissemble / dissembled / dissembled / dissembling", usage:"He tried to dissemble his true feelings during the interview."},
+{w:"Dissonance", pos:"noun", pron:"ডিসোন্যান্স /ˈdɪs.ən.əns/", bn:"বেসুরো শব্দ বা মতের অসামঞ্জস্য", syn:["discord","disharmony","conflict"], ant:["harmony","consonance"], icon:"🎵", cue:"বেসুরো অসামঞ্জস্য", hint:"ল্যাটিন 'dis-' + 'sonare' (শব্দ করা) থেকে।", forms:null, usage:"There was a clear dissonance between his words and actions."},
+{w:"Distill", pos:"verb", pron:"ডিস্টিল /dɪˈstɪl/", bn:"পরিশোধন করে সারাংশ বের করা; পাতন করা", syn:["extract","refine","concentrate","purify"], ant:["dilute","expand"], icon:"🧪", cue:"পাতন করে নির্যাস বের করা", hint:"ল্যাটিন 'destillare' (ফোঁটা ফোঁটা পড়া) থেকে।", forms:"distill / distilled / distilled / distilling", usage:"The report distills years of research into a few key points."},
+{w:"Diverge", pos:"verb", pron:"ডাইভার্জ /daɪˈvɜːdʒ/", bn:"ভিন্ন দিকে যাওয়া বা পৃথক হওয়া", syn:["separate","split","deviate","branch off"], ant:["converge","unite"], icon:"🔀", cue:"ভিন্ন পথে পৃথকীকরণ", hint:"ল্যাটিন 'di-' (আলাদা) + 'vergere' (ঝোঁকা) থেকে।", forms:"diverge / diverged / diverged / diverging", usage:"At this point, the two paths diverge into the forest."},
+{w:"Divest", pos:"verb", pron:"ডাইভেস্ট /daɪˈvest/", bn:"বঞ্চিত করা বা সরিয়ে ফেলা (ক্ষমতা, সম্পত্তি)", syn:["strip","deprive","dispossess"], ant:["endow","invest"], icon:"📤", cue:"বঞ্চিত/অপসারণ করা", hint:"ল্যাটিন 'dis-' + 'vestire' (পোশাক পরানো) থেকে — উল্টো অর্থে।", forms:"divest / divested / divested / divesting", usage:"The company decided to divest its holdings in fossil fuels."},
+{w:"Document", pos:"verb", pron:"ডকুমেন্ট /ˈdɒk.jə.ment/", bn:"লিখিতভাবে প্রমাণ বা রেকর্ড রাখা", syn:["record","register","chronicle","log"], ant:null, icon:"📄", cue:"লিখিত প্রমাণ রাখা", hint:"ল্যাটিন 'docere' (শেখানো) থেকে।", forms:"document / documented / documented / documenting", usage:"Researchers carefully documented every stage of the experiment."},
+{w:"Dupe", pos:"noun/verb", pron:"ডিউপ /djuːp/", bn:"সহজে প্রতারিত ব্যক্তি; প্রতারণা করা", syn:["fool","deceive","trick","swindle"], ant:["undeceive"], icon:"🃏", cue:"সহজে প্রতারিত হওয়া", hint:"ফরাসি 'dupe' (এক ধরনের পাখি, বোকা বোঝাতে) থেকে।", forms:"dupe / duped / duped / duping", usage:"He was duped into investing in a fake company."},
+{w:"Efficacy", pos:"noun", pron:"এফিক্যাসি /ˈef.ɪ.kə.si/", bn:"কাঙ্ক্ষিত ফল উৎপাদনের ক্ষমতা", syn:["effectiveness","potency","success"], ant:["ineffectiveness","futility"], icon:"✅", cue:"কাঙ্ক্ষিত ফল উৎপাদনক্ষমতা", hint:"ল্যাটিন 'efficax' (কার্যকর) থেকে।", forms:null, usage:"Studies confirmed the efficacy of the new vaccine."},
+{w:"Effrontery", pos:"noun", pron:"এফ্রন্টারি /ɪˈfrʌn.tər.i/", bn:"নির্লজ্জ ধৃষ্টতা", syn:["impudence","audacity","insolence","nerve"], ant:["humility","timidity"], icon:"😤", cue:"নির্লজ্জ ধৃষ্টতা", hint:"ল্যাটিন 'effrons' (নির্লজ্জ, সরাসরি: কপালহীন) থেকে।", forms:null, usage:"He had the effrontery to demand a refund after breaking the item."},
+{w:"Elegy", pos:"noun", pron:"এলিজি /ˈel.ə.dʒi/", bn:"মৃত্যু বা ক্ষতির জন্য শোকপ্রকাশক কবিতা", syn:["lament","dirge","requiem"], ant:["celebration","ode of joy"], icon:"🕊️", cue:"শোকপ্রকাশক কবিতা", hint:"গ্রিক 'elegos' (শোকগীতি) থেকে।", forms:null, usage:"The poet wrote an elegy for his fallen friend."},
+{w:"Embellish", pos:"verb", pron:"এমবেলিশ /ɪmˈbel.ɪʃ/", bn:"সাজানো বা অতিরঞ্জিত করে বর্ণনা করা", syn:["adorn","decorate","exaggerate","ornament"], ant:["simplify","plainify"], icon:"💐", cue:"সাজিয়ে/বাড়িয়ে বলা", hint:"পুরনো ফরাসি 'embellir' (সুন্দর করা) থেকে।", forms:"embellish / embellished / embellished / embellishing", usage:"He tends to embellish his stories with exaggerated details."},
+{w:"Enhance", pos:"verb", pron:"এনহ্যান্স /ɪnˈhɑːns/", bn:"গুণ বা মান বৃদ্ধি করা", syn:["improve","boost","augment","elevate"], ant:["diminish","worsen","reduce"], icon:"⬆️", cue:"গুণগত মান বৃদ্ধি", hint:"ল্যাটিন 'in-' + 'altus' (উঁচু) থেকে।", forms:"enhance / enhanced / enhanced / enhancing", usage:"The new lighting enhanced the beauty of the old building."},
+{w:"Eulogy", pos:"noun", pron:"ইউলজি /ˈjuː.lə.dʒi/", bn:"প্রশংসামূলক বক্তব্য, বিশেষত মৃত্যুর পর", syn:["tribute","panegyric","commendation"], ant:["criticism","condemnation"], icon:"🕯️", cue:"প্রশংসামূলক শোকবক্তব্য", hint:"গ্রিক 'eu-' (ভালো) + 'logos' (কথা) থেকে।", forms:null, usage:"His best friend delivered a moving eulogy at the funeral."},
+{w:"Extrapolation", pos:"noun", pron:"এক্সট্রাপোলেশন /ɪkˌstræp.əˈleɪ.ʃən/", bn:"বিদ্যমান তথ্য থেকে ভবিষ্যতের অনুমান", syn:["projection","conjecture","inference"], ant:null, icon:"📈", cue:"তথ্যভিত্তিক ভবিষ্যদ্বাণী", hint:"ল্যাটিন 'extra-' (বাইরে) + 'polire' (মসৃণ করা) থেকে।", forms:null, usage:"The forecast is based on extrapolation from past sales trends."},
+{w:"Facilitate", pos:"verb", pron:"ফ্যাসিলিটেট /fəˈsɪl.ɪ.teɪt/", bn:"সহজতর করা বা সাহায্য করা", syn:["ease","assist","enable","simplify"], ant:["hinder","obstruct"], icon:"🤝", cue:"সহজতর করা", hint:"ল্যাটিন 'facilis' (সহজ) থেকে।", forms:"facilitate / facilitated / facilitated / facilitating", usage:"The new software facilitates faster communication between teams."},
+{w:"Fallacious", pos:"adj.", pron:"ফ্যালাসিয়াস /fəˈleɪ.ʃəs/", bn:"ভুল যুক্তিভিত্তিক বা বিভ্রান্তিকর", syn:["false","misleading","erroneous","flawed"], ant:["sound","valid","accurate"], icon:"❌", cue:"ভুল যুক্তি", hint:"ল্যাটিন 'fallere' (প্রতারণা করা) থেকে।", forms:null, usage:"His fallacious argument was quickly dismantled in the debate."},
+{w:"Fawning", pos:"adj.", pron:"ফনিং /ˈfɔː.nɪŋ/", bn:"তোষামোদপূর্ণভাবে খুশি করার চেষ্টা", syn:["obsequious","servile","sycophantic","groveling"], ant:["aloof","indifferent"], icon:"🐕", cue:"তোষামোদপূর্ণ চাটুকারিতা", hint:"পুরনো ইংরেজি 'fagnian' (আনন্দিত হওয়া, কুকুরের লেজ নাড়া থেকে) থেকে।", forms:null, usage:"His fawning compliments made everyone uncomfortable."},
+{w:"Felicitous", pos:"adj.", pron:"ফেলিসিটাস /fəˈlɪs.ɪ.təs/", bn:"উপযুক্তভাবে বা সুন্দরভাবে প্রকাশিত", syn:["apt","fitting","well-chosen","suitable"], ant:["inappropriate","awkward"], icon:"🎯", cue:"উপযুক্ত সুন্দর প্রকাশ", hint:"ল্যাটিন 'felix' (সুখী/শুভ) থেকে।", forms:null, usage:"She made a felicitous choice of words in her toast."},
+{w:"Flag", pos:"verb", pron:"ফ্ল্যাগ /flæɡ/", bn:"দুর্বল হওয়া বা শক্তি হারানো", syn:["weaken","tire","droop","wane"], ant:["strengthen","revive"], icon:"🏳️", cue:"শক্তি হারিয়ে দুর্বল হওয়া", hint:"মধ্যযুগীয় ইংরেজি 'flakken' (কাঁপা) থেকে সম্ভবত।", forms:"flag / flagged / flagged / flagging", usage:"His enthusiasm began to flag after hours of hard work."},
+{w:"Fledgling", pos:"noun/adj.", pron:"ফ্লেজলিং /ˈfledʒ.lɪŋ/", bn:"নবীন ও অনভিজ্ঞ (বিশেষত পাখির ছানা থেকে)", syn:["beginner","novice","newcomer"], ant:["veteran","expert"], icon:"🐣", cue:"নবীন অনভিজ্ঞতা", hint:"'fledge' (উড়তে সক্ষম হওয়া) থেকে।", forms:null, usage:"The fledgling company struggled to find its first customers."},
+{w:"Forestall", pos:"verb", pron:"ফোরস্টল /fɔːˈstɔːl/", bn:"আগেভাগে ব্যবস্থা নিয়ে প্রতিরোধ করা", syn:["prevent","avert","preempt","hinder"], ant:["allow","permit","enable"], icon:"🚧", cue:"আগেভাগে প্রতিরোধ", hint:"পুরনো ইংরেজি 'foresteall' (পথ আটকানো) থেকে।", forms:"forestall / forestalled / forestalled / forestalling", usage:"The company forestalled the crisis by acting quickly."},
+{w:"Frugality", pos:"noun", pron:"ফ্রুগ্যালিটি /fruːˈɡæl.ə.ti/", bn:"মিতব্যয়িতা ও সাশ্রয়ী মনোভাব", syn:["thrift","economy","prudence"], ant:["extravagance","wastefulness"], icon:"💰", cue:"মিতব্যয়ী সাশ্রয়িতা", hint:"ল্যাটিন 'frugalis' (মিতব্যয়ী) থেকে।", forms:null, usage:"His frugality allowed him to save a large portion of his salary."},
+{w:"Gainsay", pos:"verb", pron:"গেইনসে /ˌɡeɪnˈseɪ/", bn:"অস্বীকার বা বিরোধিতা করা", syn:["deny","contradict","dispute","oppose"], ant:["affirm","agree","confirm"], icon:"🙅", cue:"অস্বীকার/বিরোধিতা", hint:"পুরনো ইংরেজি 'gain-' (বিপরীতে) + 'sayen' (বলা) থেকে।", forms:"gainsay / gainsaid / gainsaid / gainsaying", usage:"No one could gainsay the truth of her argument."},
+{w:"Goad", pos:"verb", pron:"গোড /ɡəʊd/", bn:"উত্তেজিত করে কাজ করতে বাধ্য করা", syn:["provoke","incite","spur","prod"], ant:["discourage","deter"], icon:"🔥", cue:"উত্তেজিত করে প্ররোচিত করা", hint:"পুরনো ইংরেজি 'gad' (তীক্ষ্ণ লাঠি) থেকে।", forms:"goad / goaded / goaded / goading", usage:"His friends goaded him into trying the dangerous stunt."},
+{w:"Gouge", pos:"verb", pron:"গাউজ /ɡaʊdʒ/", bn:"খুঁচিয়ে গর্ত করা; অতিরিক্ত মূল্য নেওয়া", syn:["scoop out","extort","overcharge"], ant:["undercharge"], icon:"🔪", cue:"খুঁচিয়ে বের করা/ঠকানো", hint:"পুরনো ফরাসি 'gouge' (ছেনি) থেকে।", forms:"gouge / gouged / gouged / gouging", usage:"The mechanic was accused of gouging customers with inflated prices."},
+{w:"Guileless", pos:"adj.", pron:"গাইললেস /ˈɡaɪl.ləs/", bn:"সরল ও প্রতারণাহীন", syn:["innocent","naive","artless","honest"], ant:["cunning","deceitful"], icon:"🌸", cue:"সরল প্রতারণাহীনতা", hint:"'guile' (চাতুর্য) + '-less' (বিহীন) থেকে।", forms:null, usage:"Her guileless nature made her an easy target for con artists."},
+{w:"Gullible", pos:"adj.", pron:"গালিবল /ˈɡʌl.ə.bəl/", bn:"সহজে প্রতারিত হয় এমন", syn:["naive","credulous","trusting"], ant:["skeptical","shrewd"], icon:"🎣", cue:"সহজে প্রতারিত হওয়া", hint:"'gull' (প্রতারিত করা) থেকে।", forms:null, usage:"Gullible investors lost their savings in the scam."},
+{w:"Harangue", pos:"noun/verb", pron:"হ্যারাং /həˈræŋ/", bn:"দীর্ঘ ও উত্তেজিত ভাষণ", syn:["tirade","rant","diatribe","lecture"], ant:["silence","brief remark"], icon:"📣", cue:"দীর্ঘ উত্তেজিত ভাষণ", hint:"ইতালীয় 'aringa' (জনসমাবেশ) থেকে।", forms:"harangue / harangued / harangued / haranguing", usage:"The coach harangued the team after their poor performance."},
+{w:"Iconoclastic", pos:"adj.", pron:"আইকনোক্লাস্টিক /aɪˌkɒn.əˈklæs.tɪk/", bn:"প্রচলিত রীতি বা বিশ্বাসের বিরোধী", syn:["unconventional","rebellious","nonconformist"], ant:["traditional","conventional"], icon:"🔨", cue:"প্রচলিত রীতিবিরোধী", hint:"গ্রিক 'eikon' (মূর্তি) + 'klastes' (ভাঙা) থেকে।", forms:null, usage:"The artist was known for his iconoclastic approach to sculpture."},
+{w:"Idolatry", pos:"noun", pron:"আইডোলাট্রি /aɪˈdɒl.ə.tri/", bn:"মূর্তিপূজা; অতিরিক্ত ভক্তি বা শ্রদ্ধা", syn:["worship","adulation","veneration"], ant:["disrespect","iconoclasm"], icon:"🗿", cue:"অতিরিক্ত ভক্তি/মূর্তিপূজা", hint:"গ্রিক 'eidolon' (মূর্তি) + 'latreia' (পূজা) থেকে।", forms:null, usage:"Fans' idolatry of the singer bordered on obsession."},
+{w:"Impair", pos:"verb", pron:"ইমপেয়ার /ɪmˈpeər/", bn:"ক্ষতিগ্রস্ত বা দুর্বল করা", syn:["damage","weaken","hinder","harm"], ant:["improve","enhance","strengthen"], icon:"🩹", cue:"ক্ষতিগ্রস্ত/দুর্বল করা", hint:"ল্যাটিন 'pejorare' (খারাপ করা) থেকে।", forms:"impair / impaired / impaired / impairing", usage:"Lack of sleep can impair your ability to concentrate."},
+{w:"Impassive", pos:"adj.", pron:"ইমপ্যাসিভ /ɪmˈpæs.ɪv/", bn:"কোনো অনুভূতি প্রকাশ করে না এমন, নির্বিকার", syn:["emotionless","stoic","unmoved","expressionless"], ant:["emotional","expressive"], icon:"😐", cue:"নির্বিকার অনুভূতিহীনতা", hint:"ল্যাটিন 'in-' (না) + 'passivus' (কষ্টভোগী) থেকে।", forms:null, usage:"He remained impassive even after hearing the shocking news."},
+{w:"Impede", pos:"verb", pron:"ইমপিড /ɪmˈpiːd/", bn:"বাধা দেওয়া বা ধীর করা", syn:["hinder","obstruct","block","hamper"], ant:["facilitate","assist","aid"], icon:"🚧", cue:"বাধা দিয়ে ধীর করা", hint:"ল্যাটিন 'impedire' (পা বাঁধা) থেকে।", forms:"impede / impeded / impeded / impeding", usage:"Heavy traffic impeded our progress to the airport."},
+{w:"Impermeable", pos:"adj.", pron:"ইমপার্মিয়েবল /ɪmˈpɜː.mi.ə.bəl/", bn:"তরল বা গ্যাস প্রবেশ করতে পারে না এমন", syn:["impervious","waterproof","sealed"], ant:["permeable","porous"], icon:"🛡️", cue:"প্রবেশ-অযোগ্য আবরণ", hint:"'im-' (না) + 'permeable' (ভেদ্য) থেকে।", forms:null, usage:"The jacket is made from an impermeable fabric that keeps out rain."}
+];
+
+const STORIES_B19 = [
+{ title: "সাহিত্য সমালোচকের বক্তৃতা", source: "এক কাল্পনিক সাহিত্য সভার গল্প অবলম্বনে",
+  words: ["Derivative","Deterrent","Diatribe","Dichotomy","Diffidence","Diffuse","Digression","Dirge","Disabuse","Discerning"],
+  text: `সমালোচক বললেন উপন্যাসটি সম্পূর্ণ ___1___, অ-মৌলিক। কঠোর সমালোচনা লেখকদের জন্য একধরনের ___2___ হয়ে দাঁড়ায়, নিরুৎসাহিতকারী। তিনি লেখাটি নিয়ে দীর্ঘ এক ___3___ শুরু করলেন, তিক্ত ভর্ৎসনা। এখানে স্পষ্ট ছিল বাস্তবতা ও কল্পনার এক ___4___, দ্বিবিভক্তি। তরুণ লেখক মঞ্চে উঠে কিছুটা ___5___ বোধ করলেন, লাজুকতা। তার বক্তব্য ছিল বেশ ___6___, বিক্ষিপ্ত ও অসংগঠিত। মূল বিষয় থেকে সরে তিনি এক দীর্ঘ ___7___-এ চলে গেলেন, প্রসঙ্গান্তরে। শ্রোতাদের মধ্যে একজন উপন্যাসের করুণ সমাপ্তিকে ___8___-এর সাথে তুলনা করলেন, শোকগীতির সাথে। সমালোচক শ্রোতাদের ভুল ধারণা ___9___ করলেন, দূর করলেন। একজন ___10___ পাঠক লেখাটির গভীর অর্থ ধরতে পারলেন, সূক্ষ্ম বিচারবুদ্ধিসম্পন্ন পাঠক।` },
+{ title: "সংগীত প্রতিযোগিতার বিতর্ক", source: "এক কাল্পনিক সংগীত প্রতিযোগিতার গল্প অবলম্বনে",
+  words: ["Discordant","Discredit","Discrepancy","Disingenuous","Disjointed","Dismiss","Dissemble","Dissonance","Distill","Diverge"],
+  text: `বিচারক লক্ষ্য করলেন সুরে একটা ___1___ নোট আছে, বেসুরো। প্রতিযোগীর প্রতিদ্বন্দ্বী তাকে ___2___ করার চেষ্টা করল, সুনাম নষ্ট করার। স্কোরে একটা স্পষ্ট ___3___ দেখা গেল, অসামঞ্জস্য। বিচারকের মন্তব্য শুনে মনে হলো তা ___4___, কৃত্রিমভাবে অকপট। প্রতিযোগীর পরিবেশনা ছিল কিছুটা ___5___, সঙ্গতিহীন। কমিটি প্রথমে অভিযোগটি ___6___ করে দিল, বাতিল করে দিল। এক প্রতিযোগী নিজের ভুল ___7___ করার চেষ্টা করল, লুকানোর চেষ্টা করল। তবে দর্শকরা স্পষ্ট এক ___8___ অনুভব করল দুই পক্ষের মধ্যে, অসামঞ্জস্য। বিচারকরা দীর্ঘ আলোচনার পর সিদ্ধান্ত ___9___ করলেন, নির্যাস বের করলেন। শেষে দুই বিচারকের মতামত ভিন্ন দিকে ___10___ করল, পৃথক হলো।` },
+{ title: "প্রতারণার শিকার ব্যবসায়ী", source: "এক কাল্পনিক ব্যবসায়িক প্রতারণার গল্প অবলম্বনে",
+  words: ["Divest","Document","Dupe","Efficacy","Effrontery","Elegy","Embellish","Enhance","Eulogy","Extrapolation"],
+  text: `ব্যবসায়ী তার পুরনো শেয়ার ___1___ করার সিদ্ধান্ত নিলেন, বিক্রি করে দেওয়ার। প্রতিটি লেনদেন সাবধানে ___2___ করা হলো, লিখিত রাখা হলো। প্রতারক তাকে ভুয়া প্রকল্পে ___3___ করল, প্রতারিত করল। নতুন ওষুধের ___4___ নিয়ে প্রশ্ন উঠল, কার্যকারিতা নিয়ে। প্রতারকের ছিল অবিশ্বাস্য ___5___, নির্লজ্জ ধৃষ্টতা। মৃত ব্যবসায়ীর স্মরণে লেখা হলো এক ___6___, শোকগাথা। তিনি নিজের সাফল্যের গল্প প্রায়ই ___7___ করতেন, অতিরঞ্জিত করতেন। নতুন কৌশল ব্যবসার মুনাফা ___8___ করল, বৃদ্ধি করল। শেষকৃত্যে তার ছেলে আবেগঘন এক ___9___ দিলেন, শোকবক্তব্য। বিশেষজ্ঞরা ভবিষ্যৎ বাজারের এক ___10___ তৈরি করলেন, অনুমান।` },
+{ title: "নতুন কোম্পানির যাত্রা", source: "এক কাল্পনিক স্টার্টআপের গল্প অবলম্বনে",
+  words: ["Facilitate","Fallacious","Fawning","Felicitous","Flag","Fledgling","Forestall","Frugality","Gainsay","Goad"],
+  text: `নতুন সফটওয়্যারটি কর্মীদের কাজ ___1___ করল, সহজতর করল। প্রতিদ্বন্দ্বীর দাবি প্রমাণিত হলো ___2___, ভুল যুক্তিভিত্তিক। কিছু কর্মী মালিকের প্রতি ___3___ আচরণ করত, তোষামোদপূর্ণ। প্রতিষ্ঠাতার বক্তৃতায় ছিল একটি ___4___ উক্তি, উপযুক্তভাবে প্রকাশিত। কঠিন সময়ে তার উদ্যম কিছুটা ___5___ করতে লাগল, দুর্বল হতে লাগল। তবু এই ___6___ কোম্পানি হাল ছাড়ল না, নবীন কোম্পানি। তারা আগেভাগে ব্যবস্থা নিয়ে সংকট ___7___ করল, প্রতিরোধ করল। প্রতিষ্ঠাতার ___8___ তাদের অর্থ সাশ্রয় করতে সাহায্য করল, মিতব্যয়িতা। কেউ তার সিদ্ধান্তের সত্যতা ___9___ করতে পারল না, অস্বীকার করতে পারল না। সহকর্মীরা একে অপরকে এগিয়ে যেতে ___10___ করত, উৎসাহিত করত।` },
+{ title: "ঠকবাজ ব্যবসায়ীর কাহিনি", source: "এক কাল্পনিক প্রতারণার গল্প অবলম্বনে",
+  words: ["Gouge","Guileless","Gullible","Harangue","Iconoclastic","Idolatry","Impair","Impassive","Impede","Impermeable"],
+  text: `দোকানদার গ্রাহকদের কাছ থেকে অতিরিক্ত দাম নিয়ে ___1___ করত, ঠকাত। তার এক কর্মচারী ছিল একেবারে ___2___, সরল ও প্রতারণাহীন। কিন্তু গ্রাহকরা ছিল বেশ ___3___, সহজে প্রতারিত হতো। একদিন এক ক্ষুব্ধ গ্রাহক দোকানে দীর্ঘ ___4___ শুরু করলেন, উত্তেজিত ভাষণ। তরুণ সাংবাদিক এই প্রতারণা নিয়ে লিখলেন, তার লেখা ছিল বেশ ___5___, প্রচলিত ধারার বিরোধী। সমাজে অর্থের প্রতি এক ধরনের ___6___ তৈরি হয়েছে, অতিরিক্ত ভক্তি। এই কেলেঙ্কারি তার ব্যবসার সুনাম ___7___ করল, ক্ষতিগ্রস্ত করল। তবু দোকানদার রইলেন সম্পূর্ণ ___8___, নির্বিকার। পুলিশ তদন্ত শুরু করলে তার কার্যক্রম ___9___ হলো, বাধাগ্রস্ত হলো। শেষে তার সম্পত্তি জব্দ করে রাখা হলো এক ___10___ সিন্দুকে, প্রবেশ-অযোগ্য সিন্দুকে।` }
+];
+
+const WORDS_B20 = [
+{w:"Imperturbable", pos:"adj.", pron:"ইমপারটার্বাবল /ˌɪm.pəˈtɜː.bə.bəl/", bn:"সহজে বিচলিত হয় না এমন, শান্ত", syn:["calm","composed","unflappable","serene"], ant:["excitable","agitated"], icon:"🧘", cue:"অবিচলিত প্রশান্তি", hint:"'im-' (না) + 'perturbare' (বিচলিত করা) থেকে।", forms:null, usage:"The pilot remained imperturbable during the turbulence."},
+{w:"Implacable", pos:"adj.", pron:"ইমপ্ল্যাকাবল /ɪmˈplæk.ə.bəl/", bn:"শান্ত করা যায় না এমন, অনমনীয়", syn:["relentless","unyielding","inexorable"], ant:["forgiving","compassionate"], icon:"😠", cue:"শান্ত করা যায় না এমন", hint:"'im-' (না) + 'placare' (শান্ত করা) থেকে।", forms:null, usage:"Her implacable hatred for injustice drove her activism."},
+{w:"Implicit", pos:"adj.", pron:"ইমপ্লিসিট /ɪmˈplɪs.ɪt/", bn:"স্পষ্টভাবে বলা হয়নি কিন্তু বোঝা যায় এমন", syn:["implied","unstated","tacit","inherent"], ant:["explicit","stated"], icon:"💭", cue:"অবোঝানো অন্তর্নিহিত অর্থ", hint:"ল্যাটিন 'implicare' (জড়িয়ে ফেলা) থেকে।", forms:null, usage:"There was an implicit understanding between the two partners."},
+{w:"Implode", pos:"verb", pron:"ইমপ্লোড /ɪmˈpləʊd/", bn:"ভেতরের দিকে ভেঙে পড়া", syn:["collapse","cave in"], ant:["explode"], icon:"💥", cue:"ভেতরের দিকে ধ্বসে পড়া", hint:"'im-' (ভেতরে) + 'explode' থেকে বিপরীতার্থে গঠিত।", forms:"implode / imploded / imploded / imploding", usage:"The old building imploded during the controlled demolition."},
+{w:"Inadvertently", pos:"adv.", pron:"ইনঅ্যাডভার্টেন্টলি /ˌɪn.ədˈvɜː.tənt.li/", bn:"অনিচ্ছাকৃতভাবে বা অসতর্কতাবশত", syn:["accidentally","unintentionally","unknowingly"], ant:["deliberately","intentionally"], icon:"🤦", cue:"অনিচ্ছাকৃত ভুল", hint:"'in-' (না) + 'advertere' (মনোযোগ দেওয়া) থেকে।", forms:null, usage:"She inadvertently deleted an important file."},
+{w:"Inchoate", pos:"adj.", pron:"ইনকোয়েট /ɪnˈkəʊ.eɪt/", bn:"সবেমাত্র শুরু হয়েছে এমন, অগোছালো", syn:["rudimentary","undeveloped","embryonic"], ant:["complete","developed","mature"], icon:"🌱", cue:"অগোছালো সদ্য-শুরু", hint:"ল্যাটিন 'inchoare' (শুরু করা) থেকে।", forms:null, usage:"The plan was still inchoate and needed much more work."},
+{w:"Incongruity", pos:"noun", pron:"ইনকনগ্রুইটি /ˌɪn.kɒŋˈɡruː.ə.ti/", bn:"সামঞ্জস্যহীনতা বা অসংগতি", syn:["inconsistency","absurdity","discrepancy"], ant:["harmony","consistency"], icon:"🧩", cue:"সামঞ্জস্যহীনতা", hint:"'in-' (না) + 'congruere' (মিলে যাওয়া) থেকে।", forms:null, usage:"There is an incongruity between his words and his actions."},
+{w:"Inconsequential", pos:"adj.", pron:"ইনকনসিকোয়েনশাল /ˌɪn.kɒn.sɪˈkwen.ʃəl/", bn:"গুরুত্বহীন বা তুচ্ছ", syn:["insignificant","trivial","minor","negligible"], ant:["significant","important","crucial"], icon:"🔹", cue:"তুচ্ছ গুরুত্বহীনতা", hint:"'in-' (না) + 'consequential' (গুরুত্বপূর্ণ) থেকে।", forms:null, usage:"He dismissed the criticism as inconsequential."},
+{w:"Incorporate", pos:"verb", pron:"ইনকরপোরেট /ɪnˈkɔː.pər.eɪt/", bn:"কোনো বড় অংশে যুক্ত বা অন্তর্ভুক্ত করা", syn:["include","integrate","combine","absorb"], ant:["exclude","separate"], icon:"🧩", cue:"বৃহত্তর অংশে অন্তর্ভুক্তি", hint:"ল্যাটিন 'in-' (ভেতরে) + 'corpus' (দেহ) থেকে।", forms:"incorporate / incorporated / incorporated / incorporating", usage:"The new design incorporates several eco-friendly features."},
+{w:"Indeterminate", pos:"adj.", pron:"ইনডিটার্মিনেট /ˌɪn.dɪˈtɜː.mɪ.nət/", bn:"অনিশ্চিত ও স্পষ্টভাবে নির্ধারিত নয় এমন", syn:["uncertain","vague","unclear","undefined"], ant:["definite","certain","fixed"], icon:"❓", cue:"অনির্ধারিত অনিশ্চয়তা", hint:"'in-' (না) + 'determinate' (নির্ধারিত) থেকে।", forms:null, usage:"The meeting ended with an indeterminate outcome."},
+{w:"Indigence", pos:"noun", pron:"ইনডিজেন্স /ˈɪn.dɪ.dʒəns/", bn:"চরম দারিদ্র্য", syn:["poverty","destitution","penury","want"], ant:["wealth","affluence","prosperity"], icon:"💸", cue:"চরম দারিদ্র্য", hint:"ল্যাটিন 'indigere' (প্রয়োজন হওয়া) থেকে।", forms:null, usage:"The charity works to help families living in indigence."},
+{w:"Insensible", pos:"adj.", pron:"ইনসেন্সিবল /ɪnˈsen.sə.bəl/", bn:"সংবেদনহীন বা অজ্ঞান; উদাসীন", syn:["unconscious","unaware","oblivious","numb"], ant:["conscious","aware","sensitive"], icon:"😶", cue:"সংবেদনহীন অজ্ঞানতা", hint:"'in-' (না) + 'sensible' (সংবেদনশীল) থেকে।", forms:null, usage:"He remained insensible to the danger around him."},
+{w:"Insularity", pos:"noun", pron:"ইনসুলারিটি /ˌɪn.sjəˈlær.ə.ti/", bn:"সংকীর্ণমনস্কতা বা বিচ্ছিন্নতা", syn:["narrow-mindedness","isolation","parochialism"], ant:["openness","broad-mindedness"], icon:"🏝️", cue:"সংকীর্ণমনস্ক বিচ্ছিন্নতা", hint:"ল্যাটিন 'insula' (দ্বীপ) থেকে।", forms:null, usage:"The town's insularity made it resistant to new ideas."},
+{w:"Intransigence", pos:"noun", pron:"ইনট্রানসিজেন্স /ɪnˈtræn.sɪ.dʒəns/", bn:"আপসহীন একগুঁয়েমি", syn:["stubbornness","obstinacy","inflexibility"], ant:["flexibility","compromise"], icon:"🚫", cue:"আপসহীন একগুঁয়েমি", hint:"ল্যাটিন 'in-' (না) + 'transigere' (আপস করা) থেকে।", forms:null, usage:"The negotiations stalled due to both sides' intransigence."},
+{w:"Inundate", pos:"verb", pron:"ইনানডেট /ˈɪn.ʌn.deɪt/", bn:"প্লাবিত করা বা ভারাক্রান্ত করা", syn:["flood","overwhelm","deluge","swamp"], ant:["drain","deplete"], icon:"🌊", cue:"প্লাবিত/অভিভূত করা", hint:"ল্যাটিন 'inundare' (প্লাবিত করা) থেকে।", forms:"inundate / inundated / inundated / inundating", usage:"The office was inundated with complaints after the announcement."},
+{w:"Inured", pos:"adj.", pron:"ইনিয়র্ড /ɪˈnjʊəd/", bn:"অভ্যস্ত বা কঠিন পরিস্থিতির সাথে সয়ে যাওয়া", syn:["accustomed","hardened","habituated"], ant:["unaccustomed","sensitive"], icon:"💪", cue:"কষ্ট সহ্যে অভ্যস্ত", hint:"'in-' + 'ure' (অভ্যস্ত করা) থেকে।", forms:null, usage:"After years in the profession, she became inured to criticism."},
+{w:"Irresolute", pos:"adj.", pron:"ইরেজোলিউট /ɪˈrez.ə.luːt/", bn:"সিদ্ধান্তহীন ও দ্বিধাগ্রস্ত", syn:["indecisive","hesitant","wavering","uncertain"], ant:["resolute","decisive","firm"], icon:"🤷", cue:"সিদ্ধান্তহীন দ্বিধা", hint:"'ir-' (না) + 'resolute' (দৃঢ়সংকল্প) থেকে।", forms:null, usage:"His irresolute leadership left the team confused about priorities."},
+{w:"Lassitude", pos:"noun", pron:"ল্যাসিটিউড /ˈlæs.ɪ.tʃuːd/", bn:"ক্লান্তি ও অবসাদ", syn:["fatigue","weariness","lethargy","tiredness"], ant:["energy","vigor"], icon:"😩", cue:"গভীর ক্লান্তি", hint:"ল্যাটিন 'lassus' (ক্লান্ত) থেকে।", forms:null, usage:"A deep lassitude settled over him after the long journey."},
+{w:"Lethargic", pos:"adj.", pron:"লেথারজিক /ləˈθɑː.dʒɪk/", bn:"অলস ও শক্তিহীন", syn:["sluggish","drowsy","listless","torpid"], ant:["energetic","lively","vigorous"], icon:"😴", cue:"অলস শক্তিহীনতা", hint:"গ্রিক 'lethargos' (বিস্মৃতিপ্রবণ, ঘুমকাতুরে) থেকে।", forms:null, usage:"The hot weather made everyone feel lethargic."},
+{w:"Levee", pos:"noun", pron:"লেভি /ˈlev.i/", bn:"বন্যা প্রতিরোধক বাঁধ", syn:["embankment","dike","dam"], ant:null, icon:"🌊", cue:"বন্যা প্রতিরোধক বাঁধ", hint:"ফরাসি 'lever' (তোলা) থেকে।", forms:null, usage:"The levee broke, flooding the nearby fields."},
+{w:"Log", pos:"noun", pron:"লগ /lɒɡ/", bn:"যাত্রা বা কার্যক্রমের লিখিত রেকর্ড", syn:["record","journal","register","diary"], ant:null, icon:"📓", cue:"কার্যক্রমের লিখিত রেকর্ড", hint:"পুরনো ইংরেজি 'logge' (কাঠের টুকরা, জাহাজের গতি মাপার যন্ত্র থেকে) থেকে।", forms:null, usage:"The captain kept a detailed log of the ship's voyage."},
+{w:"Magnanimity", pos:"noun", pron:"ম্যাগন্যানিমিটি /ˌmæɡ.nəˈnɪm.ə.ti/", bn:"উদারতা ও মহানুভবতা", syn:["generosity","benevolence","largesse"], ant:["pettiness","meanness"], icon:"🤝", cue:"উদার মহানুভবতা", hint:"ল্যাটিন 'magnus' (মহান) + 'animus' (মন) থেকে।", forms:null, usage:"He treated his former rival with great magnanimity."},
+{w:"Malingerer", pos:"noun", pron:"ম্যালিঞ্জারার /məˈlɪŋ.ɡər.ər/", bn:"কাজ এড়াতে অসুস্থতার ভান করা ব্যক্তি", syn:["shirker","faker","pretender"], ant:["hard worker"], icon:"🤒", cue:"অসুস্থতার ভান করা ব্যক্তি", hint:"ফরাসি 'malingre' (দুর্বল/রুগ্ন) থেকে।", forms:null, usage:"The manager suspected he was a malingerer, not truly ill."},
+{w:"Misanthrope", pos:"noun", pron:"মিসঅ্যানথ্রোপ /ˈmɪs.ən.θrəʊp/", bn:"মানুষকে ঘৃণা করে এমন ব্যক্তি", syn:["cynic","loner","hater of mankind"], ant:["philanthropist","humanitarian"], icon:"😒", cue:"মানুষবিদ্বেষী ব্যক্তি", hint:"গ্রিক 'misos' (ঘৃণা) + 'anthropos' (মানুষ) থেকে।", forms:null, usage:"The old misanthrope refused all invitations to social gatherings."},
+{w:"Negate", pos:"verb", pron:"নেগেট /nɪˈɡeɪt/", bn:"বাতিল বা অকার্যকর করা", syn:["nullify","cancel","invalidate","void"], ant:["affirm","validate","confirm"], icon:"❌", cue:"বাতিল/অকার্যকর করা", hint:"ল্যাটিন 'negare' (অস্বীকার করা) থেকে।", forms:"negate / negated / negated / negating", usage:"One mistake can negate months of hard work."},
+{w:"Occlude", pos:"verb", pron:"অক্লুড /əˈkluːd/", bn:"বন্ধ বা রুদ্ধ করা", syn:["block","obstruct","close","seal"], ant:["open","unblock"], icon:"🚫", cue:"বন্ধ/রুদ্ধ করা", hint:"ল্যাটিন 'occludere' (বন্ধ করা) থেকে।", forms:"occlude / occluded / occluded / occluding", usage:"A blood clot can occlude an artery and cause serious harm."},
+{w:"Opprobrium", pos:"noun", pron:"অপ্রোব্রিয়াম /əˈprəʊ.bri.əm/", bn:"প্রকাশ্য নিন্দা ও কলঙ্ক", syn:["disgrace","condemnation","scorn","censure"], ant:["honor","praise","esteem"], icon:"😤", cue:"প্রকাশ্য নিন্দা/কলঙ্ক", hint:"ল্যাটিন 'ob-' + 'probrum' (লজ্জা) থেকে।", forms:null, usage:"The scandal brought public opprobrium upon the entire company."},
+{w:"Pathological", pos:"adj.", pron:"প্যাথোলজিক্যাল /ˌpæθ.əˈlɒdʒ.ɪ.kəl/", bn:"রোগসংক্রান্ত; অস্বাভাবিক ও চরম মাত্রার", syn:["compulsive","obsessive","disease-related"], ant:["normal","healthy"], icon:"🩺", cue:"রোগসংক্রান্ত চরম মাত্রা", hint:"গ্রিক 'pathos' (রোগ/কষ্ট) + 'logos' (অধ্যয়ন) থেকে।", forms:null, usage:"He is a pathological liar who cannot tell the truth."},
+{w:"Penury", pos:"noun", pron:"পেনিউরি /ˈpen.jə.ri/", bn:"চরম দারিদ্র্য ও কৃপণতা", syn:["poverty","destitution","indigence"], ant:["wealth","abundance"], icon:"💸", cue:"চরম দারিদ্র্য", hint:"ল্যাটিন 'penuria' (অভাব) থেকে।", forms:null, usage:"The family lived in penury after losing their farm."},
+{w:"Perfidious", pos:"adj.", pron:"পারফিডিয়াস /pəˈfɪd.i.əs/", bn:"বিশ্বাসঘাতক ও প্রতারক", syn:["treacherous","disloyal","deceitful","faithless"], ant:["loyal","faithful","trustworthy"], icon:"🗡️", cue:"বিশ্বাসঘাতক প্রতারণা", hint:"ল্যাটিন 'per-' (মাধ্যমে) + 'fides' (বিশ্বাস) থেকে — বিশ্বাসভঙ্গকারী।", forms:null, usage:"The perfidious advisor secretly worked for the enemy."},
+{w:"Permeable", pos:"adj.", pron:"পার্মিয়েবল /ˈpɜː.mi.ə.bəl/", bn:"তরল বা গ্যাস প্রবেশ করতে দেয় এমন", syn:["porous","penetrable","pervious"], ant:["impermeable","impervious"], icon:"💧", cue:"ভেদ্যতা", hint:"ল্যাটিন 'permeare' (মধ্য দিয়ে যাওয়া) থেকে।", forms:null, usage:"The membrane is permeable to water but not to larger molecules."},
+{w:"Pervasive", pos:"adj.", pron:"পারভেসিভ /pəˈveɪ.sɪv/", bn:"সর্বত্র বিস্তৃত ও ব্যাপক", syn:["widespread","prevalent","ubiquitous","rampant"], ant:["rare","limited","scarce"], icon:"🌐", cue:"সর্বব্যাপী বিস্তার", hint:"ল্যাটিন 'per-' (মধ্য দিয়ে) + 'vadere' (যাওয়া) থেকে।", forms:null, usage:"There is a pervasive sense of anxiety in the current job market."},
+{w:"Piety", pos:"noun", pron:"পাইএটি /ˈpaɪ.ə.ti/", bn:"ধর্মভক্তি ও ঈশ্বরের প্রতি শ্রদ্ধা", syn:["devoutness","reverence","faith","godliness"], ant:["impiety","irreverence"], icon:"🙏", cue:"ধর্মভক্তি শ্রদ্ধা", hint:"ল্যাটিন 'pietas' (কর্তব্যনিষ্ঠা) থেকে।", forms:null, usage:"Her piety was evident in her daily prayers and charitable acts."},
+{w:"Plasticity", pos:"noun", pron:"প্লাস্টিসিটি /plæsˈtɪs.ə.ti/", bn:"আকার পরিবর্তনের ক্ষমতা", syn:["flexibility","malleability","adaptability"], ant:["rigidity","inflexibility"], icon:"🧬", cue:"রূপান্তরযোগ্য নমনীয়তা", hint:"গ্রিক 'plastikos' (গঠনযোগ্য) থেকে।", forms:null, usage:"The brain's plasticity allows it to adapt after injury."},
+{w:"Plummet", pos:"verb", pron:"প্লামিট /ˈplʌm.ɪt/", bn:"হঠাৎ তীব্রভাবে নেমে যাওয়া", syn:["plunge","drop","fall sharply","nosedive"], ant:["soar","rise","skyrocket"], icon:"📉", cue:"হঠাৎ তীব্র পতন", hint:"পুরনো ফরাসি 'plomet' (ছোট সীসার টুকরা) থেকে।", forms:"plummet / plummeted / plummeted / plummeting", usage:"Stock prices plummeted after the disappointing earnings report."},
+{w:"Preamble", pos:"noun", pron:"প্রিঅ্যাম্বল /ˈpriː.æm.bəl/", bn:"ভূমিকা বা প্রারম্ভিক বিবৃতি", syn:["introduction","prologue","foreword"], ant:["conclusion","epilogue"], icon:"📜", cue:"প্রারম্ভিক ভূমিকা", hint:"ল্যাটিন 'prae-' (আগে) + 'ambulare' (হাঁটা) থেকে।", forms:null, usage:"The preamble to the constitution outlines its core principles."},
+{w:"Presumptuous", pos:"adj.", pron:"প্রিজাম্পচুয়াস /prɪˈzʌmp.tʃu.əs/", bn:"ঔদ্ধত্যপূর্ণভাবে অতিরিক্ত অধিকার দাবি করা", syn:["arrogant","impertinent","forward","audacious"], ant:["humble","modest","deferential"], icon:"😏", cue:"ঔদ্ধত্য দাবি", hint:"ল্যাটিন 'praesumere' (আগে থেকে ধরে নেওয়া) থেকে।", forms:null, usage:"It was presumptuous of him to assume he'd get the promotion."},
+{w:"Prevaricate", pos:"verb", pron:"প্রিভ্যারিকেট /prɪˈvær.ɪ.keɪt/", bn:"সত্য এড়িয়ে অস্পষ্টভাবে কথা বলা, মিথ্যা বলা", syn:["equivocate","lie","evade","dodge"], ant:["be direct","tell the truth"], icon:"🤥", cue:"সত্য এড়িয়ে অস্পষ্ট কথা", hint:"ল্যাটিন 'praevaricari' (বাঁকাপথে চলা) থেকে।", forms:"prevaricate / prevaricated / prevaricated / prevaricating", usage:"Stop prevaricating and give me a straight answer."},
+{w:"Probity", pos:"noun", pron:"প্রোবিটি /ˈprəʊ.bə.ti/", bn:"সততা ও নৈতিক সততা", syn:["integrity","honesty","uprightness"], ant:["dishonesty","corruption"], icon:"🤝", cue:"নৈতিক সততা", hint:"ল্যাটিন 'probus' (সৎ) থেকে।", forms:null, usage:"The judge was known for his unquestionable probity."},
+{w:"Problematic", pos:"adj.", pron:"প্রবলেম্যাটিক /ˌprɒb.ləˈmæt.ɪk/", bn:"সমস্যাসংকুল বা সন্দেহজনক", syn:["troublesome","questionable","doubtful"], ant:["straightforward","unproblematic"], icon:"⚠️", cue:"সমস্যাসংকুল সন্দেহ", hint:"গ্রিক 'problema' (সমস্যা) থেকে।", forms:null, usage:"His attitude toward deadlines has become increasingly problematic."},
+{w:"Prohibitive", pos:"adj.", pron:"প্রোহিবিটিভ /prəˈhɪb.ɪ.tɪv/", bn:"এত বেশি (মূল্য) যে ব্যবহার/ক্রয় নিরুৎসাহিত করে", syn:["excessive","forbidding","restrictive"], ant:["affordable","reasonable"], icon:"🚫", cue:"নিষেধাত্মক অতিরিক্ততা", hint:"ল্যাটিন 'prohibere' (নিষেধ করা) থেকে।", forms:null, usage:"The prohibitive cost of the treatment put it out of reach for most patients."},
+{w:"Propitiate", pos:"verb", pron:"প্রোপিশিয়েট /prəˈpɪʃ.i.eɪt/", bn:"কাউকে সন্তুষ্ট বা শান্ত করা (বিশেষত দেবতাকে)", syn:["appease","placate","pacify","conciliate"], ant:["provoke","anger"], icon:"🙏", cue:"সন্তুষ্ট/শান্ত করা", hint:"ল্যাটিন 'propitiare' (অনুকূল করা) থেকে।", forms:"propitiate / propitiated / propitiated / propitiating", usage:"Ancient rituals were performed to propitiate the gods."},
+{w:"Qualified", pos:"adj.", pron:"কোয়ালিফাইড /ˈkwɒl.ɪ.faɪd/", bn:"শর্তসাপেক্ষ বা সীমিত; উপযুক্ত যোগ্যতাসম্পন্ন", syn:["limited","restricted","competent","eligible"], ant:["unqualified","unlimited"], icon:"✔️", cue:"শর্তসাপেক্ষ যোগ্যতা", hint:"ল্যাটিন 'qualis' (কেমন) থেকে।", forms:null, usage:"The board gave only qualified approval, pending further review."},
+{w:"Quibble", pos:"noun/verb", pron:"কুইবল /ˈkwɪb.əl/", bn:"তুচ্ছ বিষয়ে আপত্তি বা তর্ক", syn:["minor objection","nitpick","cavil"], ant:["agreement"], icon:"🗯️", cue:"তুচ্ছ আপত্তি", hint:"ল্যাটিন 'quibus' (আইনি নথির শব্দ, ছলনাপূর্ণ যুক্তি অর্থে) থেকে।", forms:"quibble / quibbled / quibbled / quibbling", usage:"They quibbled over minor details instead of focusing on the main issue."},
+{w:"Recant", pos:"verb", pron:"রিক্যান্ট /rɪˈkænt/", bn:"পূর্বের বক্তব্য প্রত্যাহার বা অস্বীকার করা", syn:["retract","disavow","renounce","take back"], ant:["affirm","reassert"], icon:"🔙", cue:"পূর্ব বক্তব্য প্রত্যাহার", hint:"ল্যাটিন 're-' + 'cantare' (গাওয়া, ঘোষণা করা) থেকে।", forms:"recant / recanted / recanted / recanting", usage:"Under pressure, the scientist was forced to recant his findings."},
+{w:"Recluse", pos:"noun", pron:"রিক্লুজ /rɪˈkluːs/", bn:"নির্জনতাপ্রিয় ব্যক্তি, সমাজবিচ্ছিন্ন", syn:["hermit","loner","solitary person"], ant:["socialite","extrovert"], icon:"🏚️", cue:"নির্জনতাপ্রিয় ব্যক্তি", hint:"ল্যাটিন 'recludere' (বন্ধ করে রাখা) থেকে।", forms:null, usage:"After the scandal, the once-famous actor became a recluse."},
+{w:"Rescind", pos:"verb", pron:"রিসিন্ড /rɪˈsɪnd/", bn:"বাতিল বা প্রত্যাহার করা (আইন, সিদ্ধান্ত)", syn:["revoke","annul","repeal","cancel"], ant:["enact","uphold","confirm"], icon:"📜", cue:"আইন/সিদ্ধান্ত বাতিল", hint:"ল্যাটিন 're-' + 'scindere' (ছিঁড়ে ফেলা) থেকে।", forms:"rescind / rescinded / rescinded / rescinding", usage:"The company rescinded its job offer after the background check."},
+{w:"Resolution", pos:"noun", pron:"রেজোলিউশন /ˌrez.əˈluː.ʃən/", bn:"দৃঢ় সংকল্প; আনুষ্ঠানিক সিদ্ধান্ত", syn:["determination","resolve","decision","decree"], ant:["irresolution","indecision"], icon:"🎯", cue:"দৃঢ় সংকল্প", hint:"ল্যাটিন 'resolvere' (সমাধান করা) থেকে।", forms:null, usage:"She made a resolution to exercise every morning."},
+{w:"Resolve", pos:"noun/verb", pron:"রিজল্ভ /rɪˈzɒlv/", bn:"দৃঢ় সংকল্প; দৃঢ়ভাবে সিদ্ধান্ত নেওয়া", syn:["determination","willpower","decide","settle"], ant:["hesitation","indecision"], icon:"💪", cue:"দৃঢ়সংকল্প নেওয়া", hint:"ল্যাটিন 'resolvere' (আলগা করা, পরে সমাধান অর্থে) থেকে।", forms:"resolve / resolved / resolved / resolving", usage:"Her resolve never wavered despite repeated setbacks."},
+{w:"Reverent", pos:"adj.", pron:"রেভারেন্ট /ˈrev.ər.ənt/", bn:"গভীর শ্রদ্ধাশীল", syn:["respectful","devout","worshipful"], ant:["irreverent","disrespectful"], icon:"🙇", cue:"গভীর শ্রদ্ধা", hint:"ল্যাটিন 'revereri' (গভীরভাবে শ্রদ্ধা করা) থেকে।", forms:null, usage:"The visitors maintained a reverent silence inside the temple."}
+];
+
+const STORIES_B20 = [
+{ title: "আত্মবিশ্বাসী প্রকৌশলীর দল", source: "এক কাল্পনিক নির্মাণ প্রকল্পের গল্প অবলম্বনে",
+  words: ["Imperturbable","Implacable","Implicit","Implode","Inadvertently","Inchoate","Incongruity","Inconsequential","Incorporate","Indeterminate"],
+  text: `প্রধান প্রকৌশলী বিপদেও থাকতেন সম্পূর্ণ ___1___, অবিচলিত। তার প্রতিদ্বন্দ্বী ছিলেন এক ___2___ শত্রু, আপসহীন। দুই দলের মধ্যে ছিল এক ___3___ প্রতিদ্বন্দ্বিতা, অবোঝানো কিন্তু বোধগম্য। ভবনটি ভুল নকশার কারণে ভেতরের দিকে ___4___ হয়ে গেল, ধ্বসে পড়ল। সহকারী প্রকৌশলী ___5___ ভুল করে তার বসের নাম বাদ দিলেন, অনিচ্ছাকৃতভাবে। তখনও পরিকল্পনাটি ছিল একেবারে ___6___, অগোছালো। নকশায় লক্ষ্য করা গেল এক ___7___, অসামঞ্জস্য। বসের কাছে এটা মনে হলো ___8___, গুরুত্বহীন। পরে নতুন উপাদান নকশায় ___9___ করা হলো, অন্তর্ভুক্ত করা হলো। প্রকল্পের ভবিষ্যৎ থেকে গেল একেবারে ___10___, অনিশ্চিত।` },
+{ title: "দরিদ্র গ্রামের গল্প", source: "এক কাল্পনিক গ্রামীণ জীবনের গল্প অবলম্বনে",
+  words: ["Indigence","Insensible","Insularity","Intransigence","Inundate","Inured","Irresolute","Lassitude","Lethargic","Levee"],
+  text: `গ্রামের অধিকাংশ পরিবার বাস করত চরম ___1___-এ, দারিদ্র্যে। বছরের পর বছর কষ্ট সহ্য করে তারা যেন হয়ে গিয়েছিল ___2___, সংবেদনহীন। বাইরের জগৎ থেকে বিচ্ছিন্ন থাকায় গ্রামে ছিল এক ধরনের ___3___, সংকীর্ণমনস্কতা। নতুন প্রকল্পের বিরুদ্ধে স্থানীয় নেতাদের ___4___ কাজকে কঠিন করে তুলল, একগুঁয়েমি। বর্ষায় নদী ___5___ করে দিত পুরো এলাকা, প্লাবিত করে দিত। বছরের পর বছর বন্যার সাথে তারা হয়ে গিয়েছিল ___6___, অভ্যস্ত। গ্রামপ্রধান ছিলেন সিদ্ধান্তে ___7___, দ্বিধাগ্রস্ত। দীর্ঘ পরিশ্রমের পর গ্রামবাসীদের মধ্যে দেখা দিত ___8___, ক্লান্তি। গরমের দুপুরে সবাই হয়ে পড়ত ___9___, অলস। সরকার অবশেষে একটা মজবুত ___10___ নির্মাণ করল, বাঁধ।` },
+{ title: "উদার জমিদারের কাহিনি", source: "এক কাল্পনিক জমিদারবাড়ির গল্প অবলম্বনে",
+  words: ["Log","Magnanimity","Malingerer","Misanthrope","Negate","Occlude","Opprobrium","Pathological","Penury","Perfidious"],
+  text: `পুরনো জমিদার প্রতিদিনের কাজের বিস্তারিত ___1___ রাখতেন, লিখিত রেকর্ড। তিনি ছিলেন প্রজাদের প্রতি অসাধারণ ___2___-এর অধিকারী, উদারতার। তবে এক কর্মচারী ছিল পরিচিত ___3___ হিসেবে, অসুস্থতার ভান করা ব্যক্তি হিসেবে। জমিদারের প্রতিবেশী ছিলেন এক ___4___, মানুষবিদ্বেষী ব্যক্তি। একটা ভুল সিদ্ধান্ত তার সব ভালো কাজ ___5___ করে দিল, বাতিল করে দিল। ষড়যন্ত্রকারীরা তথ্য ___6___ করার চেষ্টা করল, বন্ধ করার চেষ্টা করল। শেষে সত্য প্রকাশ পেলে তাদের উপর নেমে এলো জনতার ___7___, প্রকাশ্য নিন্দা। এক কর্মচারীর ___8___ মিথ্যাচার সবাইকে অবাক করল, রোগসংক্রান্ত চরম মিথ্যাচার। বিশ্বাসঘাতকতার আগে সেই পরিবার ছিল ঘোর ___9___-এ, দারিদ্র্যে। জমিদার বুঝতে পারলেন তার আত্মীয়ই ছিল ___10___, বিশ্বাসঘাতক।` },
+{ title: "বিজ্ঞানীর গবেষণাগার", source: "এক কাল্পনিক গবেষণাগারের গল্প অবলম্বনে",
+  words: ["Permeable","Pervasive","Piety","Plasticity","Plummet","Preamble","Presumptuous","Prevaricate","Probity","Problematic"],
+  text: `গবেষণাগারের নতুন উপাদানটি ছিল আংশিক ___1___, ভেদ্য। গবেষকদের মধ্যে সন্দেহের এক ___2___ অনুভূতি ছড়িয়ে পড়ল, ব্যাপক বিস্তার। প্রধান গবেষক তার কাজে দেখাতেন গভীর ___3___, ধর্মভক্তি। নতুন উপাদানটির ছিল অসাধারণ ___4___, রূপান্তরযোগ্যতা। কিন্তু পরীক্ষার ফলাফল হঠাৎ ___5___ করল, তীব্রভাবে নেমে গেল। প্রতিবেদনের ___6___-এ মূল সমস্যাটি ব্যাখ্যা করা হলো, ভূমিকায়। এক তরুণ গবেষক ছিলেন বেশ ___7___, ঔদ্ধত্যপূর্ণ। প্রশ্ন করা হলে তিনি সত্য এড়িয়ে ___8___ করতে লাগলেন, অস্পষ্ট কথা বললেন। প্রধান গবেষকের ছিল নিখুঁত বৈজ্ঞানিক ___9___, সততা। পুরো প্রকল্পটি হয়ে উঠল যথেষ্ট ___10___, সমস্যাসংকুল।` },
+{ title: "আদালতে সাক্ষীর জবানবন্দি", source: "এক কাল্পনিক আদালতের গল্প অবলম্বনে",
+  words: ["Prohibitive","Propitiate","Qualified","Quibble","Recant","Recluse","Rescind","Resolution","Resolve","Reverent"],
+  text: `মামলা লড়ার খরচ ছিল এতটাই ___1___ যে সাধারণ মানুষ আদালতে যেতে পারত না, নিষেধাত্মক। প্রাচীনকালে মানুষ দেবতাদের ___2___ করতে বলি দিত, সন্তুষ্ট করতে। উকিল দিলেন এক ___3___ উত্তর, শর্তসাপেক্ষ উত্তর। বিরোধী পক্ষ ছোটখাটো বিষয়ে ___4___ শুরু করল, তুচ্ছ আপত্তি। চাপের মুখে সাক্ষী তার আগের বক্তব্য ___5___ করলেন, প্রত্যাহার করলেন। মামলার পর তিনি হয়ে গেলেন এক ___6___, নির্জনতাপ্রিয় ব্যক্তি। আদালত পুরনো রায় ___7___ করে দিল, বাতিল করে দিল। বিচারক ঘোষণা করলেন এক নতুন ___8___, সিদ্ধান্ত। বাদীপক্ষের আইনজীবীর ছিল দৃঢ় ___9___, সংকল্প। রায় শুনে সবাই ___10___ নীরবতায় ডুবে গেল, শ্রদ্ধাশীল নীরবতায়।` }
 ];
 
 const SET1_BATCHES = [
@@ -2163,7 +2443,9 @@ const SET1_BATCHES = [
   {id:"b15", label:"ব্যাচ ১৫ (৭০১-৭৪৯)", words: WORDS_B15, stories: STORIES_B15},
   {id:"b16", label:"ব্যাচ ১৬ (৭৫০-৭৯৯)", words: WORDS_B16, stories: STORIES_B16},
   {id:"b17", label:"ব্যাচ ১৭ (৮০০-৮৪৯)", words: WORDS_B17, stories: STORIES_B17},
-  {id:"b18", label:"ব্যাচ ১৮ (৮৫০-৮৬৬)", words: WORDS_B18, stories: STORIES_B18}
+  {id:"b18", label:"ব্যাচ ১৮ (৮৫০-৮৯৯)", words: WORDS_B18, stories: STORIES_B18},
+  {id:"b19", label:"ব্যাচ ১৯ (৯০০-৯৪৯)", words: WORDS_B19, stories: STORIES_B19},
+  {id:"b20", label:"ব্যাচ ২০ (৯৫০-৯৯৯)", words: WORDS_B20, stories: STORIES_B20}
 ];
 const WORDS_S2_B1 = [
 {w:"Render", pos:"verb", pron:"রেন্ডার /ˈren.dər/", bn:"কোনো অবস্থায় পরিণত করা; প্রদান বা উপস্থাপন করা", syn:["make","cause to become","provide","deliver"], ant:["withhold"], icon:"🎨", cue:"রূপান্তরিত/প্রদান করা", hint:"ল্যাটিন 'reddere' (ফিরিয়ে দেওয়া) থেকে।", forms:"render / rendered / rendered / rendering", usage:"The injury rendered him unable to walk."},
@@ -2627,10 +2909,172 @@ document.getElementById('menuProfileBtn').addEventListener('click', ()=>{
   document.getElementById('avatarError').textContent = '';
   showScreen('screen-profile');
 });
+document.getElementById('menuArchiveBtn').addEventListener('click', ()=>{
+  showScreen('screen-archive');
+  loadArchiveList();
+});
 document.getElementById('menuLogoutBtn').addEventListener('click', async ()=>{
   try{ await auth.signOut(); }catch(e){}
   currentUser = null;
   showScreen('screen-auth');
+});
+
+// ---------- ARCHIVE ----------
+let currentArchiveItem = null;
+
+async function loadArchiveList(){
+  const wrap = document.getElementById('archiveListWrap');
+  wrap.innerHTML = '';
+  if(!currentUser){
+    wrap.innerHTML = '<div class="article-empty-msg">' + t('archiveLoginRequired') + '</div>';
+    return;
+  }
+  try{
+    const snap = await db.collection('archives').doc(currentUser.uid).collection('items').orderBy('createdAt','desc').get();
+    const items = [];
+    snap.forEach(doc=> items.push({id: doc.id, ...doc.data()}));
+    renderArchiveList(items);
+  }catch(e){
+    console.error('Archive load failed:', e);
+    wrap.innerHTML = '<div class="article-empty-msg">' + t('archiveLoadError') + '</div>';
+  }
+}
+
+function renderArchiveList(items){
+  const wrap = document.getElementById('archiveListWrap');
+  wrap.innerHTML = '';
+  if(!items.length){
+    wrap.innerHTML = '<div class="article-empty-msg">' + t('archiveEmpty') + '</div>';
+    return;
+  }
+  items.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'archive-item-card';
+
+    const title = document.createElement('div');
+    title.className = 'archive-item-title';
+    const snippet = item.titleSnippet || '';
+    title.textContent = snippet.slice(0,60) + (snippet.length > 60 ? '...' : '');
+    card.appendChild(title);
+
+    const meta = document.createElement('div');
+    meta.className = 'archive-item-meta';
+    let dateStr = '';
+    if(item.createdAt){
+      try{
+        dateStr = new Date(item.createdAt).toLocaleString(currentLang === 'bn' ? 'bn-BD' : 'en-US',
+          {year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+      }catch(e){ dateStr = ''; }
+    }
+    meta.innerHTML = '<span>' + escapeHtml(dateStr) + '</span>';
+    card.appendChild(meta);
+
+    const badges = document.createElement('div');
+    badges.className = 'archive-item-badges';
+    if(item.hasVocab){ const b=document.createElement('span'); b.className='archive-item-badge'; b.textContent=t('archiveBadgeVocab'); badges.appendChild(b); }
+    if(item.hasGrammar){ const b=document.createElement('span'); b.className='archive-item-badge'; b.textContent=t('archiveBadgeGrammar'); badges.appendChild(b); }
+    if(item.hasTranslation){ const b=document.createElement('span'); b.className='archive-item-badge'; b.textContent=t('archiveBadgeTranslation'); badges.appendChild(b); }
+    card.appendChild(badges);
+
+    card.addEventListener('click', ()=> openArchiveDetail(item));
+    wrap.appendChild(card);
+  });
+}
+
+function openArchiveDetail(item){
+  currentArchiveItem = item;
+  const snippet = item.titleSnippet || '';
+  document.getElementById('archiveDetailTitle').textContent = snippet.slice(0,40) || t('archiveTitle');
+
+  const hasArticle = !!item.articleText;
+  document.getElementById('archiveDetailArticleLabel').style.display = hasArticle ? '' : 'none';
+  const articleTextEl = document.getElementById('archiveDetailArticleText');
+  articleTextEl.style.display = hasArticle ? '' : 'none';
+  articleTextEl.textContent = item.articleText || '';
+
+  document.getElementById('archiveDetailVocabSection').style.display = item.hasVocab ? '' : 'none';
+  document.getElementById('archiveDetailKeyVocab').innerHTML = item.keyVocabHtml || '';
+  document.getElementById('archiveDetailPhrases').innerHTML = item.phrasesHtml || '';
+
+  document.getElementById('archiveDetailGrammarSection').style.display = item.hasGrammar ? '' : 'none';
+  document.getElementById('archiveDetailGrammar').innerHTML = item.grammarHtml || '';
+
+  const hasTrans = !!item.hasTranslation;
+  document.getElementById('archiveDetailTranslationSection').style.display = hasTrans ? '' : 'none';
+  const transEl = document.getElementById('archiveDetailTranslation');
+  transEl.textContent = item.translationText || '';
+  transEl.style.display = hasTrans ? '' : 'none';
+
+  const statusEl = document.getElementById('archiveDetailStatus');
+  statusEl.style.display = 'none';
+  statusEl.classList.remove('success');
+
+  showScreen('screen-archive-detail');
+}
+
+document.getElementById('archiveBackBtn').addEventListener('click', ()=> showScreen('screen-dashboard'));
+document.getElementById('archiveDetailBackBtn').addEventListener('click', ()=> showScreen('screen-archive'));
+
+document.getElementById('archiveDeleteBtn').addEventListener('click', async ()=>{
+  if(!currentArchiveItem || !currentUser) return;
+  if(!confirm(t('archiveDeleteConfirm'))) return;
+  const btn = document.getElementById('archiveDeleteBtn');
+  btn.disabled = true;
+  try{
+    await db.collection('archives').doc(currentUser.uid).collection('items').doc(currentArchiveItem.id).delete();
+    showScreen('screen-archive');
+    loadArchiveList();
+  }catch(e){
+    console.error('Archive delete failed:', e);
+    const statusEl = document.getElementById('archiveDetailStatus');
+    statusEl.textContent = t('archiveSaveError');
+    statusEl.classList.remove('success');
+    statusEl.style.display = '';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('saveToArchiveBtn').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('archiveSaveStatus');
+  statusEl.style.display = 'none';
+  statusEl.classList.remove('success');
+  if(!currentUser){
+    statusEl.textContent = t('archiveLoginRequired');
+    statusEl.style.display = '';
+    return;
+  }
+  const btn = document.getElementById('saveToArchiveBtn');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = t('archiveSavingBtn');
+  try{
+    const item = {
+      createdAt: Date.now(),
+      titleSnippet: (lastArticleText || '').slice(0, 90),
+      articleText: lastArticleText || '',
+      hasVocab: !!articleHasVocab,
+      hasGrammar: !!articleHasGrammar,
+      hasTranslation: !!articleHasTranslation,
+      keyVocabHtml: articleHasVocab ? document.getElementById('keyVocabTableWrap').innerHTML : '',
+      phrasesHtml: articleHasVocab ? document.getElementById('phrasesTableWrap').innerHTML : '',
+      grammarHtml: articleHasGrammar ? document.getElementById('deepGrammarResults').innerHTML : '',
+      translationText: articleHasTranslation ? document.getElementById('articleTranslated').textContent : ''
+    };
+    const id = 'a' + Date.now() + Math.random().toString(36).slice(2,8);
+    await db.collection('archives').doc(currentUser.uid).collection('items').doc(id).set(item);
+    statusEl.textContent = t('archiveSavedMsg');
+    statusEl.classList.add('success');
+    statusEl.style.display = '';
+  }catch(e){
+    console.error('Archive save failed:', e);
+    statusEl.textContent = t('archiveSaveError');
+    statusEl.classList.remove('success');
+    statusEl.style.display = '';
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
 });
 
 // ---------- PROFILE ----------
@@ -3184,6 +3628,9 @@ function posClassForTags(tags){
 }
 
 let lastArticleText = '';
+let articleHasVocab = false;
+let articleHasGrammar = false;
+let articleHasTranslation = false;
 
 function showArticleStatus(msg){
   const el = document.getElementById('articleStatusMsg');
@@ -3239,6 +3686,9 @@ async function analyzeArticle(){
 
   try{
     lastArticleText = text;
+    articleHasVocab = false;
+    articleHasGrammar = false;
+    articleHasTranslation = false;
     const res = await fetch('/.netlify/functions/extract-vocabulary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3271,6 +3721,7 @@ async function analyzeArticle(){
       {field:'term', labelKey:'vocabColTerm'},
       {field:'bn_meaning', labelKey:'vocabColBn'}
     ], 'noDifficultWords');
+    articleHasVocab = true;
 
     document.getElementById('articleTranslated').style.display = 'none';
     document.getElementById('articleTranslated').textContent = '';
@@ -3315,6 +3766,7 @@ async function translateFullArticle(){
     const outEl = document.getElementById('articleTranslated');
     outEl.textContent = (data.translation || '').trim();
     outEl.style.display = '';
+    articleHasTranslation = true;
   }catch(e){
     console.error('Article translation failed:', e);
     showArticleStatus(t('articleTranslateError') + ' [' + (e && e.message ? e.message : 'unknown') + ']');
@@ -3595,7 +4047,10 @@ async function runDeepGrammarAnalysis(){
 
   btn.textContent = originalLabel;
   btn.disabled = false;
-  if(hadAnySuccess) statusEl.style.display = 'none';
+  if(hadAnySuccess){
+    statusEl.style.display = 'none';
+    articleHasGrammar = true;
+  }
 }
 
 document.getElementById('analyzeArticleBtn').addEventListener('click', analyzeArticle);
